@@ -15,6 +15,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller for managing products.
+ * <p>
+ * Provides APIs for:
+ * - Creating products
+ * - Fetching products (with optional filtering)
+ * - Updating products
+ * - Deleting products
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
@@ -25,48 +35,50 @@ public class ProductController {
 
     @PostMapping
     @RolesAllowed(Constant.ROLE_ADMIN)
-    public ResponseEntity<ProductResponseDTO> addProduct(
+    public ResponseEntity<ProductResponseDTO> create(
             @Valid @RequestBody ProductRequestDTO dto) {
 
-        log.info("Adding product: {}", dto.getName());
+        log.info("Creating product: {}", dto.getName());
 
-        ProductResponseDTO response = productService.addProduct(dto);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(productService.addProduct(dto));
     }
 
     @GetMapping
-    @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN})
-    public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
-        log.info("Fetching all products");
+    @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
+    public ResponseEntity<List<ProductResponseDTO>> get(
+            @RequestParam(required = false) String name) {
+
+        log.info("Fetching products. Filter: {}", name);
+
+        if (name != null && !name.isBlank()) {
+            return ResponseEntity.ok(List.of(productService.getProductByName(name)));
+        }
+
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
-    @GetMapping("/name/{name}")
-    @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN})
-    public ResponseEntity<ProductResponseDTO> getProductByName(
-            @PathVariable String name) {
-        log.info("Fetching product with name: {}", name);
-        return ResponseEntity.ok(productService.getProductByName(name));
+
+    @PutMapping("/{name}")
+    @RolesAllowed(Constant.ROLE_ADMIN)
+    public ResponseEntity<ProductResponseDTO> update(
+            @PathVariable String name,
+            @Valid @RequestBody ProductUpdateDTO dto) {
+
+        log.info("Updating product: {}", name);
+
+        return ResponseEntity.ok(productService.updateProductByName(name, dto));
     }
 
-    @PutMapping("/{id}")
+
+    @DeleteMapping("/{name}")
     @RolesAllowed(Constant.ROLE_ADMIN)
-    public ResponseEntity<ProductResponseDTO> updateProduct(
-            @PathVariable Long id,
-            @Valid @RequestBody ProductUpdateDTO updateDTO) {
+    public ResponseEntity<String> delete(@PathVariable String name) {
 
-        log.info("Updating product with id: {}", id);
+        log.info("Deleting product: {}", name);
 
-        return ResponseEntity.ok(
-                productService.updateProduct(id, updateDTO)
-        );
-    }
+        productService.deleteProductByName(name);
 
-    @DeleteMapping("/{id}")
-    @RolesAllowed(Constant.ROLE_ADMIN)
-    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
-        productService.deleteProductById(id);
-        return ResponseEntity.ok("Deleted successfully");
+        return ResponseEntity.ok(Constant.PRODUCT_DELETED_SUCCESS);
     }
 }

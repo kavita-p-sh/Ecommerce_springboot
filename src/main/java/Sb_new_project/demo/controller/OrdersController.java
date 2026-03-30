@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * handles order related APIs
+ */
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
@@ -24,7 +27,9 @@ public class OrdersController {
     private final OrderService orderService;
     private final LoggedInUserService loggedInUserService;
 
-
+    /**
+     * Add order
+     */
     @PostMapping
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN})
     public ResponseEntity<OrderResponseDTO> createOrder(
@@ -45,30 +50,18 @@ public class OrdersController {
 
         log.info("Fetching orders");
 
-        if (loggedInUserService.isAdmin()) {
-            return ResponseEntity.ok(orderService.getAllOrders());
-        } else {
-            return ResponseEntity.ok(orderService.getOrdersByUser());
-        }
+        return ResponseEntity.ok(orderService.getOrders()); // ✅ single call
     }
 
-    @GetMapping("/{id}")
-    @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN})
-    public ResponseEntity<OrderResponseDTO> getOrder(@PathVariable Long id) {
 
-        log.info("Fetching order with id: {}", id);
-
-        return ResponseEntity.ok(orderService.getOrderById(id));
-    }
-
-    @PutMapping("/{id}/cancel")
+    @PutMapping("/cancel")
     @RolesAllowed(Constant.ROLE_USER)
-    public ResponseEntity<String> cancelOrder(@PathVariable Long id) {
+    public ResponseEntity<String> cancelOrder() {
 
-        log.warn("Cancelling order with id: {}", id);
+        log.warn("Cancelling latest order for user");
 
-        orderService.cancelOrder(id);
+        orderService.cancelOrder();
 
-        return ResponseEntity.ok("Order " + id + Constant.CANCELLED);
+        return ResponseEntity.ok("Latest order cancelled successfully");
     }
 }

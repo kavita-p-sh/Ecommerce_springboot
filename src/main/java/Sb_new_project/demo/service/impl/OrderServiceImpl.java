@@ -16,7 +16,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
+/**
+ * Implementation of OrderService.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -27,18 +31,16 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final OrderStatusRepository orderStatusRepository;
-
-
     private final LoggedInUserServiceImpl loggedInUserServiceImpl;
 
-
+    /**
+     * Create order.
+     */
     @Override
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
 
-
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
-
 
         if (request.getItems() == null || request.getItems().isEmpty()) {
             throw new BadRequestException(Constant.ORDER_ITEMS_CAN_NOT_EMPTY);
@@ -76,12 +78,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.setTotalAmount(totalAmount);
         order.setTotalQuantity(totalQuantity);
-
-
         order = orderRepository.save(order);
-//        if(true)
-//        throw new RuntimeException("Test rollback after order save");
-
 
         for (OrderItemRequest item : request.getItems()) {
 
@@ -112,8 +109,40 @@ public class OrderServiceImpl implements OrderService {
         return mapToResponse(order);
     }
 
-        @Override
-        public List<OrderResponseDTO> getOrdersByUser() {
+    @Override
+    public List<OrderResponseDTO> getOrders() {
+
+        if (loggedInUserServiceImpl.isAdmin()) {
+            return orderRepository.findAll()
+                    .stream()
+                    .map(this::mapToResponse)
+                    .toList();
+        } else {
+
+            String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
+
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException(Constant.USER_NOT_FOUND));
+
+            return orderRepository.findByUser(user)
+                    .stream()
+                    .map(this::mapToResponse)
+                    .toList();
+        }
+    }
+
+    @Override
+    public List<OrderResponseDTO> getAllOrders() {
+
+        return orderRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Override
+    public List<OrderResponseDTO> getOrdersByUser() {
+
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
 
         User user = userRepository.findByUsername(username)
@@ -126,37 +155,21 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderResponseDTO> getAllOrders() {
-
-        log.info("Fetching all orders (Admin)");
-
-        return orderRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
-
-    @Override
-    public OrderResponseDTO getOrderById(Long id) {
+    @Transactional
+    public void cancelOrder() {
 
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
-        Orders order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(Constant.ORDER_NOT_FOUND));
 
-        if (!order.getUser().getUsername().equals(username)) {
-            throw new BadRequestException(Constant.UNAUTHORIZED_ORDER_ACCESS);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(Constant.USER_NOT_FOUND));
+
+        List<Orders> orders = orderRepository.findByUser(user);
+
+        if (orders.isEmpty()) {
+            throw new ResourceNotFoundException(Constant.ORDER_NOT_FOUND);
         }
 
-        return mapToResponse(order);
-    }
-
-    @Override
-    @Transactional
-    public void cancelOrder(Long id) {
-
-        String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
-        Orders order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(Constant.ORDER_NOT_FOUND));
+        Orders order = orders.get(orders.size() - 1);
 
         OrderStatus cancelledStatus = orderStatusRepository
                 .findByStatusName(OrderStatusEnum.CANCELLED.name())
@@ -178,26 +191,26 @@ public class OrderServiceImpl implements OrderService {
 
             product.setQuantity(product.getQuantity() + 1);
             product.setUpdatedBy(username);
-            throw new RuntimeException("Mid failure");
 
-//            productRepository.save(product);
-
+            productRepository.save(product);
         }
 
         order.setStatus(cancelledStatus);
         order.setUpdatedBy(username);
 
-
         orderRepository.save(order);
 
-        log.info("Order cancelled with ID: {}", id);
+        log.info("Latest order cancelled for user: {}", username);
     }
 
+    /**
+     * Map entity to DTO.
+     */
     private OrderResponseDTO mapToResponse(Orders order) {
 
         OrderResponseDTO response = new OrderResponseDTO();
 
-        response.setOrderId(order.getOrderId());
+        response.setOrderId(order.getOrderId()); // keep for response only
         response.setTotalAmount(order.getTotalAmount());
         response.setTotalQuantity(order.getTotalQuantity());
         response.setStatus(order.getStatus().getStatusName());

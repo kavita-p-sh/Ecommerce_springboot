@@ -2,31 +2,39 @@ package Sb_new_project.demo.service;
 
 import Sb_new_project.demo.dto.RegisterRequestDTO;
 import Sb_new_project.demo.entity.User;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
+/**
+ * Service interface for managing user operations.
+ * <p>
+ * Provides methods for:
+ * - User registration
+ * - Fetching user details
+ * - Updating user information
+ * - Deleting users
+ * </p>
+ */
 public interface UserService {
-    @Transactional
-    User registerUserAsUser(RegisterRequestDTO dto);
 
-    @Transactional
-    User registerUserAsAdmin(RegisterRequestDTO dto);
 
-    boolean adminExists();
+    User registerUser(RegisterRequestDTO dto);
+
 
     List<User> getAllUsers();
 
-    User getUserById(Long id);
-
     User getUserByUsername(String username);
 
-    @Transactional
-    User updateUser(Long id, RegisterRequestDTO dto);
 
-    @Transactional
+    User getMyProfile(Authentication authentication);
+
+
     User updateUserByUsername(String username, RegisterRequestDTO dto);
 
-    @Transactional
-    void deleteUser(Long id);
+
+    User updateMyProfile(Authentication authentication, RegisterRequestDTO dto);
+
+
+    void deleteUserByUsername(String username);
 }

@@ -2,12 +2,10 @@ package Sb_new_project.demo.service.impl;
 
 import Sb_new_project.demo.entity.User;
 import Sb_new_project.demo.repository.UserRepository;
-import Sb_new_project.demo.service.AdminService;
 import Sb_new_project.demo.service.CustomUserDetailsService;
 import Sb_new_project.demo.util.Constant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

@@ -53,8 +53,7 @@ public class SpringSecurity {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers("/auth/register-user").permitAll()
-                        .requestMatchers("/auth/register-admin").permitAll()
+                        .requestMatchers("/auth/register").permitAll()
                         .requestMatchers("/auth/login").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/products").permitAll()

@@ -2,20 +2,28 @@ package Sb_new_project.demo.service;
 
 import Sb_new_project.demo.dto.OrderRequestDTO;
 import Sb_new_project.demo.dto.OrderResponseDTO;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Service interface for managing order operations.
+ * <p>
+ * Provides methods for:
+ * - Creating orders
+ * - Fetching orders (user/admin)
+ * - Fetching specific order
+ * - Cancelling orders
+ * </p>
+ */
 public interface OrderService {
-    @Transactional
+
     OrderResponseDTO createOrder(OrderRequestDTO request);
 
     List<OrderResponseDTO> getOrdersByUser();
 
     List<OrderResponseDTO> getAllOrders();
 
-    OrderResponseDTO getOrderById(Long id);
+    List<OrderResponseDTO> getOrders();
 
-    @Transactional
-    void cancelOrder(Long id);
+    void cancelOrder(); // ✅ latest order cancel (user-based)
 }
