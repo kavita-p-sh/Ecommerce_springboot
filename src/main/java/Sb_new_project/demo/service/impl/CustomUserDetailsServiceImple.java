@@ -23,15 +23,14 @@ public class CustomUserDetailsServiceImple implements CustomUserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        log.info("Load user: {}", username);
-
+        log.info("Fetching user by username", username);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
-                    log.error("User not found: {}", username);
+                    log.error("User not found", username);
                     return new UsernameNotFoundException(Constant.USER_NOT_FOUND);
                 });
 
-        log.info("User: {} Role: {}", user.getUsername(), user.getRole().getRoleName());
+        log.info("User:  Role:", user.getUsername(), user.getRole().getRoleName());
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),

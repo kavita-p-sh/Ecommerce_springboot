@@ -31,12 +31,10 @@
                 throws ServletException, IOException {
 
             String path = request.getServletPath();
-
             log.info("Request path: {}", path);
 
             if (path.equals("/auth/login") ||
-                    path.equals("/auth/register-user") ||
-                    path.equals("/auth/register-admin")) {
+                    path.equals("/auth/register") ) {
 
                 filterChain.doFilter(request, response);
                 return;
@@ -45,7 +43,7 @@
             String header = request.getHeader("Authorization");
 
             if (header == null || !header.startsWith("Bearer ")) {
-                log.warn("Authorization header missing or invalid");
+                log.warn("Header Missing");
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -56,7 +54,6 @@
 
                 String username = jwtUtil.extractUsername(token);
 
-
                 if (username != null ) {
 
                     var userDetails = userDetailsService.loadUserByUsername(username);
@@ -64,11 +61,7 @@
                     if (jwtUtil.validateToken(token, userDetails)) {
 
                         UsernamePasswordAuthenticationToken authToken =
-                                new UsernamePasswordAuthenticationToken(
-                                        userDetails,
-                                        null,
-                                        userDetails.getAuthorities()
-                                );
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                         authToken.setDetails(new WebAuthenticationDetailsSource()
                                         .buildDetails(request)

@@ -44,6 +44,7 @@ public class Constant {
     public static final String STATUS_CANCELLED = "CANCELLED";
     public static final String STATUS_DELIVERED = "DELIVERED";
     public static final String STATUS_NOT_FOUND = "Status not found";
+    public static final String NOT_ALLOWED_TO_CANCEL_ORDER = "You are not allowed to cancel this order";
 
 
     public static final String OUT_OF_STOCK = "Product out of stock: ";
@@ -51,7 +52,7 @@ public class Constant {
 
 
     public static final String INVALID_CREDENTIALS = "Invalid username or password";
-    public static final String ONLY_ADMIN_ALLOWED = "Only Admin Can Perform This Operation";
+    public static final String ONLY_ADMIN_ALLOWED = "Only Admin Can Delete";
 
 
     public static final String RESOURCE_NOT_FOUND = "Requested resource not found";

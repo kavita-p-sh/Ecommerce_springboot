@@ -5,11 +5,13 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.List;
 
 @Entity
 @Table(name = "roles")
+@ToString(exclude = "users")
 @Data
 public class Role{
 
@@ -18,12 +20,12 @@ public class Role{
     private Long roleId;
 
     @NotBlank(message = "Role name cannot be blank")
-    @Size(max = 50, message = "Role name must be at most 50 characters")
     @Column(nullable = false, unique = true, length = 50)
     private String roleName;
 
     @OneToMany(mappedBy="role")
     @JsonIgnore
+
     private List<User> users;
 
 }

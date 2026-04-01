@@ -5,77 +5,73 @@ import Sb_new_project.demo.dto.ProductRequestDTO;
 import Sb_new_project.demo.dto.ProductResponseDTO;
 import Sb_new_project.demo.dto.ProductUpdateDTO;
 import Sb_new_project.demo.entity.Product;
+import Sb_new_project.demo.entity.User;
 import Sb_new_project.demo.exception.ResourceNotFoundException;
 import Sb_new_project.demo.repository.ProductRepository;
 import Sb_new_project.demo.service.ProductService;
 import Sb_new_project.demo.util.Constant;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Implementation of ProductService.
- * Handles business logic for product operations.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@EnableCaching
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final LoggedInUserServiceImpl loggedInUserServiceImpl;
 
-    /**
-     * Create new product.
-     */
     @Override
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public ProductResponseDTO addProduct(ProductRequestDTO requestDTO) {
 
-        log.info("Adding product: {}", requestDTO.getName());
+        log.info("Adding Product:{}" + requestDTO.getName());
 
         if (productRepository.existsByName(requestDTO.getName())) {
             throw new IllegalArgumentException(Constant.PRODUCT_ALREADY_EXISTS + requestDTO.getName());
         }
 
         Product product = new Product();
-        product.setName(requestDTO.getName().trim());
+        product.setName(requestDTO.getName());
         product.setDescription(requestDTO.getDescription());
         product.setPrice(requestDTO.getPrice());
         product.setQuantity(requestDTO.getQuantity());
 
         LoggedInUserDTO user = loggedInUserServiceImpl.getCurrentUser();
-        product.setCreatedBy(user.getUsername());
+        String username = user.getUsername();
 
         return mapToResponse(productRepository.save(product));
+
     }
 
-    /**
-     * Get all products.
-     */
     @Override
+    @Cacheable("products")
     public List<ProductResponseDTO> getAllProducts() {
 
-        List<ProductResponseDTO> responseList = new ArrayList<>();
+        log.info("Fetching all products from database");
 
-        for (Product product : productRepository.findAll()) {
-            responseList.add(mapToResponse(product));
-        }
-
-        return responseList;
+        return productRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
-    /**
-     * Get product by name.
-     */
     @Override
+    @Cacheable(value = "products", key = "#name")
     public ProductResponseDTO getProductByName(String name) {
+
+        log.info("Fetching product by name: {}", name);
 
         Product product = productRepository.findByName(name)
                 .orElseThrow(() ->
@@ -84,59 +80,59 @@ public class ProductServiceImpl implements ProductService {
         return mapToResponse(product);
     }
 
-    /**
-     * Update product by name.
-     */
     @Override
     @Transactional
-    public ProductResponseDTO updateProductByName(String name, ProductUpdateDTO dto) {
+    @CacheEvict(value = "products", allEntries = true)
+    public ProductResponseDTO updateProductByName(String name, ProductUpdateDTO updatedto) {
 
         log.info("Updating product: {}", name);
+
+        LoggedInUserDTO user = loggedInUserServiceImpl.getCurrentUser();
+
+        if (!user.getRoles().contains(Constant.ROLE_ADMIN)) {
+            log.error("Access denied for user: {}", user.getUsername());
+            throw new AccessDeniedException(Constant.ONLY_ADMIN_ALLOWED);
+        }
 
         Product product = productRepository.findByName(name)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(Constant.PRODUCT_NOT_FOUND + name));
 
-        LoggedInUserDTO user = loggedInUserServiceImpl.getCurrentUser();
 
-        if (!user.getRoles().contains(Constant.ROLE_ADMIN)) {
-            throw new AccessDeniedException(Constant.ONLY_ADMIN_ALLOWED);
-        }
+        if (updatedto.getName() != null && !updatedto.getName().isEmpty()) {
 
-        // Update fields
-        if (StringUtils.hasText(dto.getName())) {
-
-            if (!product.getName().equals(dto.getName()) &&
-                    productRepository.existsByName(dto.getName())) {
-
-                throw new IllegalArgumentException(Constant.PRODUCT_ALREADY_EXISTS + dto.getName());
+            if (!product.getName().equals(updatedto.getName())
+                    && productRepository.existsByName(updatedto.getName())) {
+                throw new IllegalArgumentException(Constant.PRODUCT_ALREADY_EXISTS + updatedto.getName());
             }
 
-            product.setName(dto.getName().trim());
+            product.setName(updatedto.getName().trim());
         }
 
-        if (StringUtils.hasText(dto.getDescription())) {
-            product.setDescription(dto.getDescription().trim());
+        if (updatedto.getDescription() != null && !updatedto.getDescription().isEmpty()) {
+            product.setDescription(updatedto.getDescription().trim());
         }
 
-        if (dto.getPrice() != null) {
-            product.setPrice(dto.getPrice());
+        if (updatedto.getPrice() != null) {
+            product.setPrice(updatedto.getPrice());
         }
 
-        if (dto.getQuantity() != null) {
-            product.setQuantity(dto.getQuantity());
+        if (updatedto.getQuantity() != null) {
+            product.setQuantity(updatedto.getQuantity());
         }
 
         product.setUpdatedBy(user.getUsername());
 
-        return mapToResponse(productRepository.save(product));
+        Product savedProduct = productRepository.save(product);
+
+        log.info("Product updated successfully: {}", savedProduct.getName());
+
+        return mapToResponse(savedProduct);
     }
 
-    /**
-     * Delete product by name.
-     */
     @Override
     @Transactional
+    @CacheEvict(value = "products", allEntries = true)
     public void deleteProductByName(String name) {
 
         log.info("Deleting product: {}", name);
@@ -148,9 +144,6 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(product);
     }
 
-    /**
-     * Convert entity to response DTO.
-     */
     private ProductResponseDTO mapToResponse(Product product) {
 
         ProductResponseDTO responseDTO = new ProductResponseDTO();
@@ -160,9 +153,10 @@ public class ProductServiceImpl implements ProductService {
         responseDTO.setDescription(product.getDescription());
         responseDTO.setPrice(product.getPrice());
         responseDTO.setQuantity(product.getQuantity());
-        responseDTO.setCreatedDate(product.getCreatedDate());
         responseDTO.setUpdatedBy(product.getUpdatedBy());
 
         return responseDTO;
     }
+
+
 }

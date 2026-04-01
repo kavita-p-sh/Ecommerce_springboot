@@ -10,82 +10,71 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
+        @Value("${jwt.secret}")
+        private String secret;
 
-    @Value("${jwt.expiration}")
-    private long expiration;
+        @Value("${jwt.expiration}")
+        private long expiration;
 
+        public String generateToken(UserDetails userDetails) {
 
-    public String generateToken(UserDetails userDetails) {
+            return Jwts.builder()
+                    .setSubject(userDetails.getUsername())
+                    .setIssuedAt(new Date())
+                    .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                    .signWith(SignatureAlgorithm.HS256, secret)
+                    .compact();
+        }
 
-        return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .claim("role",
-                        userDetails.getAuthorities()
-                                .iterator()
-                                .next()
-                                .getAuthority())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(SignatureAlgorithm.HS256, secret)
-                .compact();
-    }
+        public String extractUsername(String token) {
 
+            token = getToken(token);
 
-    public String extractUsername(String token) {
+            return Jwts.parser()
+                    .setSigningKey(secret)
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        }
 
-        token = token.replace("Bearer ", "");
+        public String extractRole(String token) {
 
-        return Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
-    }
+            token = getToken(token);
 
+            return Jwts.parser()
+                    .setSigningKey(secret)
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .get("role", String.class);
+        }
 
+        public boolean validateToken(String token, UserDetails userDetails) {
 
-    public String extractRole(String token) {
+            try {
+                String username = extractUsername(token);
 
-        token = token.replace("Bearer ", "");
+                return username.equals(userDetails.getUsername())
+                        && !isTokenExpired(token);
 
-        return Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody()
-                .get("role", String.class);
-    }
+            } catch (Exception e) {
+                return false;
+            }
+        }
 
+        private boolean isTokenExpired(String token) {
 
-    public boolean validateToken(String token, UserDetails userDetails) {
+            token = getToken(token);
 
-        try {
+            Date expDate = Jwts.parser()
+                    .setSigningKey(secret)
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getExpiration();
 
-            String username = extractUsername(token);
+            return expDate.before(new Date());
+        }
 
-            return username.equals(userDetails.getUsername())
-                    && !isTokenExpired(token);
-
-        } catch (JwtException | IllegalArgumentException e) {
-
-            return false;
+        private String getToken(String token) {
+            return token.replace("Bearer ", "");
         }
     }
-
-
-    private boolean isTokenExpired(String token) {
-
-        token = token.replace("Bearer ", "");
-
-        Date expirationDate = Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration();
-
-        return expirationDate.before(new Date());
-    }
-
-}
-

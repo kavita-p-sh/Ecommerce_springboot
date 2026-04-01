@@ -19,7 +19,6 @@ public class Product extends BaseEntity {
     private Long productId;
 
     @NotBlank(message = "Product name cannot be blank")
-    @Size(min = 2, max = 150, message = "Product name must be between 2 and 150 characters")
     @Column(nullable = false, length = 150)
     private String name;
 

@@ -38,7 +38,8 @@ public class AuthController {
      * Login user and return token.
      */
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO dto) {
+    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO dto)
+    {
         return ResponseEntity.ok(authService.login(dto));
     }
 
@@ -46,11 +47,7 @@ public class AuthController {
      * Logout user.
      */
     @PostMapping("/logout")
-    @RolesAllowed({
-            Constant.ROLE_USER,
-            Constant.ROLE_ADMIN,
-            Constant.ROLE_MANAGER
-    })
+    @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
     public ResponseEntity<String> logout() {
         return ResponseEntity.ok(Constant.LOGOUT_SUCCESS);
     }

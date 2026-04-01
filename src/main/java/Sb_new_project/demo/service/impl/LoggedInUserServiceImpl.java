@@ -43,7 +43,6 @@ public class LoggedInUserServiceImpl implements LoggedInUserService {
 
     @Override
     public boolean isAdmin() {
-
         Authentication auth = getAuthentication();
 
         return auth.getAuthorities()

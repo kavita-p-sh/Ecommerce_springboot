@@ -36,7 +36,6 @@ public class OrdersController {
             @Valid @RequestBody OrderRequestDTO dto) {
 
         log.info("Order creation request");
-
         OrderResponseDTO response = orderService.createOrder(dto);
 
         log.info("Order created successfully with id {}", response.getOrderId());
@@ -47,21 +46,25 @@ public class OrdersController {
     @GetMapping
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN})
     public ResponseEntity<List<OrderResponseDTO>> getOrders() {
-
         log.info("Fetching orders");
+        return ResponseEntity.ok(orderService.getAllOrders());
+    }
 
-        return ResponseEntity.ok(orderService.getOrders()); // ✅ single call
+    @GetMapping("/myorder")
+    @RolesAllowed(Constant.ROLE_USER)
+    public ResponseEntity<List<OrderResponseDTO>> getMyOrders() {
+
+        log.info("Fetching orders for user");
+        return ResponseEntity.ok(orderService.getOrdersByUser());
     }
 
 
-    @PutMapping("/cancel")
-    @RolesAllowed(Constant.ROLE_USER)
-    public ResponseEntity<String> cancelOrder() {
+    @PutMapping("/cancel/{orderId}")
+    @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
+    public ResponseEntity<String> cancelOrder(@PathVariable Long orderId) {
 
-        log.warn("Cancelling latest order for user");
-
-        orderService.cancelOrder();
-
-        return ResponseEntity.ok("Latest order cancelled successfully");
+        log.warn("Cancelling order with id {}", orderId);
+        orderService.cancelOrder(orderId);
+        return ResponseEntity.ok(Constant.CANCELLED);
     }
 }

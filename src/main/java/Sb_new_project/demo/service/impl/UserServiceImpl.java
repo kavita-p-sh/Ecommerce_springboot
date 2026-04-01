@@ -1,6 +1,8 @@
 package Sb_new_project.demo.service.impl;
 
 import Sb_new_project.demo.dto.RegisterRequestDTO;
+import Sb_new_project.demo.dto.UpdateUserDTO;
+import Sb_new_project.demo.dto.UserResponseDTO;
 import Sb_new_project.demo.entity.Role;
 import Sb_new_project.demo.entity.User;
 import Sb_new_project.demo.exception.BadRequestException;
@@ -9,23 +11,24 @@ import Sb_new_project.demo.repository.RoleRepository;
 import Sb_new_project.demo.repository.UserRepository;
 import Sb_new_project.demo.service.UserService;
 import Sb_new_project.demo.util.Constant;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
 
-/**
- * Implementation of UserService.
- * Handles business logic related to user operations.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
+
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -33,14 +36,57 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final LoggedInUserServiceImpl loggedInUserServiceImpl;
 
-    /**
-     * Register a new user.
-     */
+    private User createUser(RegisterRequestDTO dto, String roleName) {
+        log.info("Register request for: {}", dto.getUsername());
+        validateUserNotExists(dto);
+        Role role = getValidRole(roleName);
+        User user = buildUser(dto, role);
+
+        return userRepository.save(user);
+    }
+
+    private void validateUserNotExists(RegisterRequestDTO dto) {
+
+        log.debug("Checking if user already exists: {}", dto.getUsername());
+
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            log.error("Username already exists: {}", dto.getUsername());
+            throw new BadRequestException(Constant.USERNAME_EXISTS);
+        }
+
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            log.error("Email already exists: {}", dto.getEmail());
+            throw new BadRequestException(Constant.EMAIL_ALREADY_EXISTS);
+        }
+    }
+
+    private Role getValidRole(String roleName) {
+        log.debug("Fetching role: {}", roleName);
+        Role role = roleRepository.findByRoleName(roleName);
+
+        if (role == null) {
+            throw new ResourceNotFoundException(Constant.ROLE_NOT_FOUND + roleName);
+        }
+        return role;
+    }
+
+    private User buildUser(RegisterRequestDTO dto, Role role) {
+
+        User user = new User();
+        user.setUsername(dto.getUsername());
+        user.setEmail(dto.getEmail().trim());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setRole(role);
+        log.debug("User object created successfully for username: {}", dto.getUsername());
+
+        return user;
+    }
+
     @Override
-    @Transactional
+    @CachePut(cacheNames = "user", key = "username")
     public User registerUser(RegisterRequestDTO dto) {
 
-        log.info("Register request for: {}", dto.getUsername());
+        log.info("Register request received for username: {}", dto.getUsername());
 
         String roleName = resolveAndValidateRole(dto.getRole());
 
@@ -48,42 +94,14 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Create and save user.
-     */
-    private User createUser(RegisterRequestDTO dto, String roleName) {
-
-        if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new BadRequestException(Constant.USERNAME_EXISTS);
-        }
-
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new BadRequestException(Constant.EMAIL_ALREADY_EXISTS);
-        }
-
-        Role role = roleRepository.findByRoleName(roleName);
-        if (role == null) {
-            throw new ResourceNotFoundException(Constant.ROLE_NOT_FOUND + roleName);
-        }
-
-        User user = new User();
-        user.setUsername(dto.getUsername().trim());
-        user.setEmail(dto.getEmail().trim());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setRole(role);
-
-        return userRepository.save(user);
-    }
-
-    /**
      * Validate role.
      */
     private String resolveAndValidateRole(String requestedRole) {
 
-        if (!StringUtils.hasText(requestedRole)) {
+        if (StringUtils.isEmpty(requestedRole)) {
             return Constant.ROLE_USER;
         }
-
-        String roleName = requestedRole.trim().toUpperCase();
+        String roleName = requestedRole;
 
         List<String> allowedRoles = List.of(
                 Constant.ROLE_USER,
@@ -97,101 +115,117 @@ public class UserServiceImpl implements UserService {
 
         return roleName;
     }
-
-    /**
-     * Get all users.
-     */
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    @Cacheable(cacheNames = "user", key = "'allUsers'")
+    public List<UserResponseDTO> getAllUsers() {
+
+        log.info("Fetching all users from database");
+
+        List<User> users = userRepository.findAll();
+
+        return users.stream()
+                .map(user -> new UserResponseDTO(
+                        user.getUserId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getRole().getRoleName()
+
+                ))
+                .toList();
     }
 
-    /**
-     * Get user by username.
-     */
     @Override
-    public User getUserByUsername(String username) {
+    @Cacheable(cacheNames = "user", key = "'allUsers'")
+    public User getUserByUsername(String username)  {
+
+        log.info("Fetching user by username: {}", username);
+
+        return userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new RuntimeException(Constant.USER_NOT_FOUND_WITH_USERNAME + username)
+                );
+    }
+
+    @Override
+    public User getMyProfile(Authentication authentication) {
+        String username = authentication.getName();
+
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(Constant.USER_NOT_FOUND + username));
     }
 
-    /**
-     * Get logged-in user profile.
-     */
     @Override
-    public User getMyProfile(Authentication authentication) {
-        return getUserByUsername(authentication.getName());
-    }
+    @CachePut(cacheNames = "user", key = "#username")
+    public User updateUserByUsername(String username, UpdateUserDTO dto) {
+        log.info("Updating user with username: {}", username);
 
-    /**
-     * Update logged-in user profile.
-     */
-    @Override
-    @Transactional
-    public User updateMyProfile(Authentication authentication, RegisterRequestDTO dto) {
-        return updateUserByUsername(authentication.getName(), dto);
-    }
-
-    /**
-     * Update user by username.
-     */
-    @Override
-    @Transactional
-    public User updateUserByUsername(String username, RegisterRequestDTO dto) {
-
-        User user = getUserByUsername(username);
-
-        updateFields(user, dto);
-
-        user.setUpdatedBy(loggedInUserServiceImpl.getUsername());
-        user.setUpdatedDate(java.time.LocalDateTime.now());
-
-        return userRepository.save(user);
-    }
-
-    /**
-     * Update user fields.
-     */
-    private void updateFields(User user, RegisterRequestDTO dto) {
-
-        if (StringUtils.isEmpty(dto.getUsername()) &&
-                !user.getUsername().equals(dto.getUsername())) {
-
-            if (userRepository.existsByUsername(dto.getUsername())) {
-                throw new BadRequestException(Constant.USERNAME_EXISTS);
-            }
-            user.setUsername(dto.getUsername().trim());
-        }
-
-        if (StringUtils.isEmpty(dto.getEmail()) &&
-                !user.getEmail().equals(dto.getEmail())) {
-
-            if (userRepository.existsByEmail(dto.getEmail())) {
-                throw new BadRequestException(Constant.EMAIL_ALREADY_EXISTS);
-            }
-            user.setEmail(dto.getEmail().trim());
-        }
-
-        if (StringUtils.isEmpty(dto.getPassword())) {
-
-            if (dto.getPassword().length() < 6) {
-                throw new BadRequestException(Constant.PASSWORD_INVALID);
-            }
-
-            user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        }
-    }
-
-    /**
-     * Delete user by username.
-     */
-    @Override
-    @Transactional
-    public void deleteUserByUsername(String username) {
-
-        User user = userRepository.findByUsername(username)
+        User existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(Constant.USER_NOT_FOUND + username));
 
-        userRepository.delete(user);
+        if (StringUtils.isEmpty(dto.getUsername())) {
+            existingUser.setUsername(dto.getUsername());
+        }
+
+        if (StringUtils.isEmpty(dto.getEmail())) {
+            existingUser.setEmail(dto.getEmail());
+        }
+
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        User updatedUser = userRepository.save(existingUser);
+
+        log.info("User updated successfully: {}", username);
+        return updatedUser;
     }
+
+    @Override
+    @CachePut(cacheNames = "user", key = "#result.username")
+    public User updateMyProfile(Authentication authentication, UpdateUserDTO dto) {
+        String username = authentication.getName();
+
+        log.info("Updating profile for user: {}", username);
+
+        User existingUser = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(Constant.USER_NOT_FOUND + username));
+
+        if (dto.getUsername() != null && !dto.getUsername().isEmpty()) {
+            existingUser.setUsername(dto.getUsername());
+        }
+
+        if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {
+            existingUser.setEmail(dto.getEmail());
+        }
+
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        User updatedUser = userRepository.save(existingUser);
+
+        log.info("Profile updated successfully: {}", username);
+
+        return updatedUser;
+    }
+
+    @Override
+    public void deleteUserByUsername(String username) {
+        log.info("Deleting user with username: {}", username);
+
+        if (!loggedInUserServiceImpl.isAdmin()) {
+            throw new BadRequestException(Constant.ONLY_ADMIN_ALLOWED);
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(Constant.USER_NOT_FOUND + username));
+
+        userRepository.delete(user);
+
+        log.info(Constant.USER_DELETED_SUCCESS, username);
+    }
+
+
 }

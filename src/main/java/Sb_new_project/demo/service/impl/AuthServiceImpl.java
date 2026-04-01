@@ -32,26 +32,25 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final UserService userService;
 
-    /**
-     * Authenticates the user and generates JWT token.
-     *
-     * @param dto login request containing username and password
-     * @return LoginResponseDTO containing JWT token, username, and roles
-     */
     @Override
     public LoginResponseDTO login(LoginRequestDTO dto) {
 
-        log.info("Login attempt for user: {}", dto.getUsername());
+        log.info("Login request for user: " + dto.getUsername());
 
-        authenticate(dto);
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        dto.getUsername(),
+                        dto.getPassword())
+        );
 
-        UserDetails userDetails = loadUser(dto.getUsername());
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(dto.getUsername());
 
-        String token = generateToken(userDetails);
+        String token = jwtUtil.generateToken(userDetails);
 
-        List<String> roles = extractRoles(userDetails);
-
-        log.info("Login successful for user: {}", dto.getUsername());
+        List<String> roles = userDetails.getAuthorities()
+                .stream()
+                .map(a -> a.getAuthority())
+                .toList();
 
         return new LoginResponseDTO(
                 token,
@@ -60,47 +59,18 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
-
     @Override
     public UserResponseDTO register(RegisterRequestDTO dto) {
 
-        log.info("Registering new user: {}", dto.getUsername());
-
+        log.info("Register user: " + dto.getUsername());
         User user = userService.registerUser(dto);
 
-        log.info("User registered successfully: {}", dto.getUsername());
+        UserResponseDTO response = new UserResponseDTO();
+        response.setUserId(user.getUserId());
+        response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole().getRoleName());
 
-        UserResponseDTO res = new UserResponseDTO();
-        res.setUserId(user.getUserId());
-        res.setUsername(user.getUsername());
-        res.setEmail(user.getEmail());
-        res.setRole(user.getRole().getRoleName());
-
-        return res;
-    }
-
-    private void authenticate(LoginRequestDTO dto) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        dto.getUsername(),
-                        dto.getPassword()
-                )
-        );
-    }
-
-    private UserDetails loadUser(String username) {
-        return customUserDetailsService.loadUserByUsername(username);
-    }
-
-
-    private String generateToken(UserDetails userDetails) {
-        return jwtUtil.generateToken(userDetails);
-    }
-
-    private List<String> extractRoles(UserDetails userDetails) {
-        return userDetails.getAuthorities()
-                .stream()
-                .map(a -> a.getAuthority())
-                .toList();
+        return response;
     }
 }

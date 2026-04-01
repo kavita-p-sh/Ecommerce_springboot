@@ -22,7 +22,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SpringSecurity {
 
     private final JwtFilter jwtFilter;
-//    private final SessionRegistry sessionRegistry;
 
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -38,8 +37,6 @@ public class SpringSecurity {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
-
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -71,12 +68,10 @@ public class SpringSecurity {
                         .requestMatchers(HttpMethod.PUT, "/api/users/*").hasAuthority(Constant.ROLE_ADMIN)
                         .requestMatchers(HttpMethod.DELETE, "/api/users/*").hasAuthority(Constant.ROLE_ADMIN)
 
-                        .requestMatchers(HttpMethod.POST, "/api/orders").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/orders").hasAuthority(Constant.ROLE_USER)
                         .requestMatchers(HttpMethod.GET, "/api/orders").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/orders/*").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/orders/*/cancel").authenticated()
-
-                        .requestMatchers(HttpMethod.GET, "/api/admin/active-users").hasAuthority(Constant.ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.PUT, "/api/orders/cancel/*").authenticated()
 
                         .anyRequest().authenticated()
                 )

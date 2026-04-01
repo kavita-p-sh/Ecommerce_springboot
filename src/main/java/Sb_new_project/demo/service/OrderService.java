@@ -23,7 +23,5 @@ public interface OrderService {
 
     List<OrderResponseDTO> getAllOrders();
 
-    List<OrderResponseDTO> getOrders();
-
-    void cancelOrder(); // ✅ latest order cancel (user-based)
+    void cancelOrder(Long orderId);
 }

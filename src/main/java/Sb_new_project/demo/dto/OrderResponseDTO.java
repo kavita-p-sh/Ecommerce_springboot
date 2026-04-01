@@ -2,10 +2,11 @@ package Sb_new_project.demo.dto;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class OrderResponseDTO {
+public class OrderResponseDTO implements Serializable {
 
     private Long orderId;
     private Double totalAmount;

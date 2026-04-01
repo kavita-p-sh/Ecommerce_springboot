@@ -6,24 +6,27 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 @Entity
 @Table(name = "users")
 @Data
+@Getter
+@Setter
 public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @NotBlank(message = "Username cannot be blank")
-    @Size(max = 50, message = "Username must be at most 50 characters")
-    @Column(nullable = false, unique = true, length = 50)
+    @NotBlank
+    @Column(nullable = false, unique = true)
     private String username;
 
-    @NotBlank(message = "Password cannot be blank")
+    @NotBlank
     @Size(min = 6, message = "Password must be at least 6 characters")
     @Column(nullable = false, length = 255)
     @JsonIgnore
