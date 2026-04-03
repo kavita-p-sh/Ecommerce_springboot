@@ -1,7 +1,6 @@
 package Sb_new_project.demo.service.impl;
 
 import Sb_new_project.demo.dto.LoginRequestDTO;
-import Sb_new_project.demo.dto.LoginResponseDTO;
 import Sb_new_project.demo.dto.RegisterRequestDTO;
 import Sb_new_project.demo.dto.UserResponseDTO;
 import Sb_new_project.demo.entity.User;
@@ -9,7 +8,6 @@ import Sb_new_project.demo.security.JwtUtil;
 import Sb_new_project.demo.service.AuthService;
 import Sb_new_project.demo.service.CustomUserDetailsService;
 import Sb_new_project.demo.service.UserService;
-import Sb_new_project.demo.util.Constant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +30,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserService userService;
 
     @Override
-    public LoginResponseDTO login(LoginRequestDTO dto) {
+    public String login(LoginRequestDTO dto) {
 
         log.info("Login request for user: " + dto.getUsername());
 
@@ -43,10 +41,8 @@ public class AuthServiceImpl implements AuthService {
         );
 
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(dto.getUsername());
+        return jwtUtil.generateToken(userDetails);
 
-        String token = jwtUtil.generateToken(userDetails);
-
-        return new LoginResponseDTO(token);
     }
 
     @Override

@@ -1,9 +1,8 @@
 package Sb_new_project.demo.controller;
 
-import Sb_new_project.demo.dto.OrderItemRequest;
 import Sb_new_project.demo.dto.OrderResponseDTO;
+import Sb_new_project.demo.entity.OrderItem;
 import Sb_new_project.demo.service.OrderService;
-import Sb_new_project.demo.service.LoggedInUserService;
 import Sb_new_project.demo.util.Constant;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
@@ -31,7 +30,7 @@ public class OrdersController {
     @PostMapping
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN})
     public ResponseEntity<OrderResponseDTO> createOrder(
-            @Valid @RequestBody List<OrderItemRequest>dto) {
+            @Valid @RequestBody List<OrderItem>dto) {
 
         log.info("Order creation request");
         OrderResponseDTO response = orderService.createOrder(dto);
@@ -49,7 +48,7 @@ public class OrdersController {
     }
 
     @GetMapping("/myorder")
-    @RolesAllowed(Constant.ROLE_USER)
+    @RolesAllowed({Constant.ROLE_USER,Constant.ROLE_ADMIN})
     public ResponseEntity<List<OrderResponseDTO>> getMyOrders() {
 
         log.info("Fetching orders for user");

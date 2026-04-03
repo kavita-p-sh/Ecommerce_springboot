@@ -5,8 +5,7 @@ import Sb_new_project.demo.dto.ProductRequestDTO;
 import Sb_new_project.demo.dto.ProductResponseDTO;
 import Sb_new_project.demo.dto.ProductUpdateDTO;
 import Sb_new_project.demo.entity.Product;
-import Sb_new_project.demo.entity.User;
-import Sb_new_project.demo.exception.ResourceNotFoundException;
+import Sb_new_project.demo.exception.UserNotFoundException;
 import Sb_new_project.demo.repository.ProductRepository;
 import Sb_new_project.demo.service.ProductService;
 import Sb_new_project.demo.util.Constant;
@@ -69,19 +68,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Cacheable(value = "products", key = "#name")
-    public ProductResponseDTO getProductByName(String name) {
-
-        log.info("Fetching product by name: {}", name);
-
-        Product product = productRepository.findByName(name)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(Constant.PRODUCT_NOT_FOUND + name));
-
-        return mapToResponse(product);
-    }
-
-    @Override
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
     public ProductResponseDTO updateProductByName(String name, ProductUpdateDTO updatedto) {
@@ -97,7 +83,7 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = productRepository.findByName(name)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(Constant.PRODUCT_NOT_FOUND + name));
+                        new UserNotFoundException(Constant.PRODUCT_NOT_FOUND + name));
 
 
         if (updatedto.getName() != null && !updatedto.getName().isEmpty()) {
@@ -140,7 +126,7 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = productRepository.findByName(name)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(Constant.PRODUCT_NOT_FOUND + name));
+                        new UserNotFoundException(Constant.PRODUCT_NOT_FOUND + name));
 
         productRepository.delete(product);
     }

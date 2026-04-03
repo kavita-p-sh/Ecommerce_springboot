@@ -20,7 +20,6 @@ public interface ProductService {
 
     List<ProductResponseDTO> getAllProducts();
 
-    ProductResponseDTO getProductByName(String name);
 
     ProductResponseDTO updateProductByName(String name, ProductUpdateDTO dto);
 

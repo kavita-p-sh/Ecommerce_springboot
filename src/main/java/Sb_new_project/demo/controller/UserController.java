@@ -50,26 +50,18 @@ public class UserController {
     }
 
     @RolesAllowed(Constant.ROLE_ADMIN)
-    @PutMapping("/{username}")
-    public ResponseEntity<UserResponseDTO> updateUserByUsername(@PathVariable String username, @RequestBody UpdateUserDTO dto) {
-        log.info("update user by admin");
-        UserResponseDTO updatedUser= userService.updateUserByUsername(username, dto);
+    @PutMapping
+    public ResponseEntity<UserResponseDTO> updateUser(@RequestBody UpdateUserDTO dto) {
+        UserResponseDTO updatedUser = userService.updateUserByUsername(dto.getUsername(), dto);
         return ResponseEntity.ok(updatedUser);
-    }
-
-    @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
-    @PutMapping("/update/profile")
-    public ResponseEntity<UserResponseDTO> updateMyProfile(
-            Authentication authentication,
-            @RequestBody UpdateUserDTO dto) {
-        return ResponseEntity.ok(userService.updateMyProfile(authentication, dto));
     }
 
     @RolesAllowed(Constant.ROLE_ADMIN)
     @DeleteMapping("/{username}")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {
-        log.info("deleting user by admin");
+        log.info("deleting user by admin:{}",username);
         userService.deleteUserByUsername(username);
-        return ResponseEntity.ok(Constant.USER_DELETED_SUCCESS);
+        return ResponseEntity.ok("User" + username + Constant.USER_DELETED_SUCCESS);
     }
+
 }

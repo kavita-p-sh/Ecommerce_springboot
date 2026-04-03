@@ -1,7 +1,7 @@
 package Sb_new_project.demo.service;
 
-import Sb_new_project.demo.dto.OrderItemRequest;
 import Sb_new_project.demo.dto.OrderResponseDTO;
+import Sb_new_project.demo.entity.OrderItem;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import java.util.List;
  */
 public interface OrderService {
 
-    OrderResponseDTO createOrder(List<OrderItemRequest> items);
+    OrderResponseDTO createOrder(List<OrderItem> items);
 
     List<OrderResponseDTO> getOrdersByUser();
 

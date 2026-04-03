@@ -1,11 +1,10 @@
 package Sb_new_project.demo.service.impl;
 
-import Sb_new_project.demo.dto.OrderItemRequest;
 import Sb_new_project.demo.dto.OrderResponseDTO;
 import Sb_new_project.demo.entity.*;
 import Sb_new_project.demo.enums.OrderStatusEnum;
 import Sb_new_project.demo.exception.BadRequestException;
-import Sb_new_project.demo.exception.ResourceNotFoundException;
+import Sb_new_project.demo.exception.UserNotFoundException;
 import Sb_new_project.demo.repository.*;
 import Sb_new_project.demo.service.OrderService;
 import Sb_new_project.demo.util.Constant;
@@ -38,7 +37,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     @CacheEvict(value = "orders", allEntries = true)
-    public OrderResponseDTO createOrder(List<OrderItemRequest> request) {
+    public OrderResponseDTO createOrder(List<OrderItem> request) {
         String userName = loggedInUserServiceImpl.getCurrentUser().getUsername();
 
         checkItems(request);
@@ -56,7 +55,7 @@ public class OrderServiceImpl implements OrderService {
     /**
      * check items that item can not empty
      */
-    private void checkItems(List<OrderItemRequest> items) {
+    private void checkItems(List<OrderItem> items) {
         if (items == null || items.isEmpty()) {
             throw new BadRequestException(Constant.ORDER_ITEMS_CAN_NOT_EMPTY);
         }
@@ -70,7 +69,7 @@ public class OrderServiceImpl implements OrderService {
      */
     private User getUser(String userName) {
         return userRepository.findByUsername(userName)
-                .orElseThrow(() -> new ResourceNotFoundException(Constant.USER_NOT_FOUND));
+                .orElseThrow(() -> new UserNotFoundException(Constant.USER_NOT_FOUND));
     }
 
 
@@ -85,7 +84,7 @@ public class OrderServiceImpl implements OrderService {
         if (status.isPresent()) {
             return status.get();
         } else {
-            throw new ResourceNotFoundException(Constant.STATUS_NOT_FOUND);
+            throw new UserNotFoundException(Constant.STATUS_NOT_FOUND);
         }
     }
 
@@ -106,12 +105,21 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    private void addTotals(List<OrderItemRequest> items, Orders order) {
+    private void addTotals(List<OrderItem> items, Orders order) {
         double totalAmount = 0;
         int totalQty = 0;
-        for (OrderItemRequest item : items) {
-            Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException(Constant.PRODUCT_NOT_FOUND));
+
+        for (OrderItem item : items) {
+            if (item.getProduct() == null || item.getProduct().getProductId() == null) {
+                throw new BadRequestException("Product id required");
+            }
+
+            if (item.getQuantity() == null || item.getQuantity() <= 0) {
+                throw new BadRequestException("Quantity must be greater than 0");
+            }
+
+            Product product = productRepository.findById(item.getProduct().getProductId())
+                    .orElseThrow(() -> new UserNotFoundException(Constant.PRODUCT_NOT_FOUND));
 
             int quantity = item.getQuantity();
 
@@ -133,11 +141,11 @@ public class OrderServiceImpl implements OrderService {
      * @param order
      * @param userName
      */
-    private void saveItems(List<OrderItemRequest> items, Orders order, String userName) {
+    private void saveItems(List<OrderItem> items, Orders order, String userName) {
 
-        for (OrderItemRequest item : items) {
-            Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException(Constant.PRODUCT_NOT_FOUND));
+        for (OrderItem item : items) {
+            Product product = productRepository.findById(item.getProduct().getProductId())
+                    .orElseThrow(() -> new UserNotFoundException(Constant.PRODUCT_NOT_FOUND));
 
             int quantity = item.getQuantity();
 
@@ -148,6 +156,8 @@ public class OrderServiceImpl implements OrderService {
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setProduct(product);
+
+            orderItem.setQuantity(quantity);
 
             orderItemRepository.save(orderItem);
         }
@@ -165,7 +175,7 @@ public class OrderServiceImpl implements OrderService {
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException(Constant.USER_NOT_FOUND));
+                .orElseThrow(() -> new UserNotFoundException(Constant.USER_NOT_FOUND));
 
         return orderRepository.findByUser(user)
                 .stream()
@@ -201,7 +211,7 @@ public class OrderServiceImpl implements OrderService {
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
 
         Orders order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException(Constant.ORDER_NOT_FOUND));
+                .orElseThrow(() -> new UserNotFoundException(Constant.ORDER_NOT_FOUND));
 
         if (!order.getUser().getUsername().equals(username)) {
             throw new BadRequestException(Constant.NOT_ALLOWED_TO_CANCEL_ORDER);
@@ -212,9 +222,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         OrderStatus cancelledStatus = orderStatusRepository
-
                 .findByStatusName(OrderStatusEnum.CANCELLED.name())
-                .orElseThrow(() -> new ResourceNotFoundException(Constant.STATUS_NOT_FOUND));
+                .orElseThrow(() -> new UserNotFoundException(Constant.STATUS_NOT_FOUND));
 
         List<OrderItem> items = orderItemRepository.findByOrder(order);
 
@@ -231,7 +240,7 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepository.save(order);
 
-        log.info("Order cancelled", orderId, username);
+        log.info("Order cancelled with id: {} by user: {}", orderId, username);
     }
 
     /**

@@ -1,7 +1,6 @@
 package Sb_new_project.demo.controller;
 
 import Sb_new_project.demo.dto.LoginRequestDTO;
-import Sb_new_project.demo.dto.LoginResponseDTO;
 import Sb_new_project.demo.dto.RegisterRequestDTO;
 import Sb_new_project.demo.dto.UserResponseDTO;
 import Sb_new_project.demo.service.AuthService;
@@ -38,8 +37,7 @@ public class AuthController {
      * Login user and return token.
      */
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO dto)
-    {
+    public ResponseEntity<String> login(@Valid @RequestBody LoginRequestDTO dto) {
         return ResponseEntity.ok(authService.login(dto));
     }
 

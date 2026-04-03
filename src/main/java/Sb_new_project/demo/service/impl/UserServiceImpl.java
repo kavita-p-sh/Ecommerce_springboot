@@ -7,7 +7,7 @@ import Sb_new_project.demo.entity.Role;
 import Sb_new_project.demo.entity.User;
 import Sb_new_project.demo.enums.RoleName;
 import Sb_new_project.demo.exception.BadRequestException;
-import Sb_new_project.demo.exception.ResourceNotFoundException;
+import Sb_new_project.demo.exception.UserNotFoundException;
 import Sb_new_project.demo.repository.RoleRepository;
 import Sb_new_project.demo.repository.UserRepository;
 import Sb_new_project.demo.service.UserService;
@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
         Role role = roleRepository.findByRoleName(roleName);
 
         if (role == null) {
-            throw new ResourceNotFoundException(Constant.ROLE_NOT_FOUND + roleName);
+            throw new UserNotFoundException(Constant.ROLE_NOT_FOUND + roleName);
         }
         return role;
     }
@@ -155,7 +155,7 @@ public class UserServiceImpl implements UserService {
         String username = authentication.getName();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException(Constant.USER_NOT_FOUND + username));
+                .orElseThrow(() -> new UserNotFoundException(Constant.USER_NOT_FOUND + username));
 
         return mapToUserResponseDTO(user);
 
@@ -169,7 +169,7 @@ public class UserServiceImpl implements UserService {
         log.info("Updating user with username: {}", username);
 
         User existingUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException(Constant.USER_NOT_FOUND + username));
+                .orElseThrow(() -> new UserNotFoundException(Constant.USER_NOT_FOUND + username));
 
         if (!StringUtils.isEmpty(dto.getEmail())) {
             existingUser.setEmail(dto.getEmail());
@@ -199,7 +199,7 @@ public class UserServiceImpl implements UserService {
 
         User existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(Constant.USER_NOT_FOUND + username));
+                        new UserNotFoundException(Constant.USER_NOT_FOUND + username));
 
         if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {
             existingUser.setEmail(dto.getEmail());
@@ -229,7 +229,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(Constant.USER_NOT_FOUND + username));
+                        new UserNotFoundException(Constant.USER_NOT_FOUND + username));
 
         userRepository.delete(user);
 
