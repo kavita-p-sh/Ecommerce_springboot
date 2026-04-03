@@ -8,8 +8,5 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class LoginResponseDTO {
-
     private String token;
-    private String username;
-    private List<String> roles;
 }

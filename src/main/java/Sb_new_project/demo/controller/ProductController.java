@@ -47,12 +47,16 @@ public class ProductController {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
+    @GetMapping("/{name}")
+    @RolesAllowed({Constant.ROLE_ADMIN, Constant.ROLE_USER})
+    public ResponseEntity<ProductResponseDTO> getProductByName(@PathVariable String name) {
+        log.info("Fetching product by name");
+        return ResponseEntity.ok(productService.getProductByName(name));
+    }
+
     @PutMapping("/{name}")
     @RolesAllowed(Constant.ROLE_ADMIN)
-    public ResponseEntity<ProductResponseDTO> updateProduct(
-            @PathVariable String name,
-            @Valid @RequestBody ProductUpdateDTO dto) {
-
+    public ResponseEntity<ProductResponseDTO> updateProduct(@PathVariable String name, @Valid @RequestBody ProductUpdateDTO dto) {
         log.info("Update product: ", name);
         ProductResponseDTO response = productService.updateProductByName(name, dto);
         return ResponseEntity.ok(response);

@@ -1,9 +1,11 @@
 package Sb_new_project.demo.dto;
 
 import Sb_new_project.demo.entity.Role;
+import Sb_new_project.demo.enums.RoleName;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @Getter
@@ -12,13 +14,13 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class UserResponseDTO implements Serializable {
 
-    private Long userId;
     private String username;
     private String email;
-    private String role;
-
-
-
-
+    private RoleName role;
+    private String phoneNumber;
+    private String createdBy;
+    private String updatedBy;
+    private LocalDateTime createdTimestamp;
+    private LocalDateTime updatedTimestamp;
 
 }

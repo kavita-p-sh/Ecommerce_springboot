@@ -30,12 +30,12 @@ public class CustomUserDetailsServiceImple implements CustomUserDetailsService {
                     return new UsernameNotFoundException(Constant.USER_NOT_FOUND);
                 });
 
-        log.info("User:  Role:", user.getUsername(), user.getRole().getRoleName());
+        log.info("User: {} Role: {}", user.getUsername(), user.getRole().getRoleName());
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-               List.of(new SimpleGrantedAuthority(user.getRole().getRoleName()))
+               List.of(new SimpleGrantedAuthority(user.getRole().getRoleName().name()))
         );
     }
 

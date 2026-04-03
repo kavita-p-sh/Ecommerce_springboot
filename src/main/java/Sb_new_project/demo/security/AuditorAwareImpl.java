@@ -22,6 +22,11 @@ public class AuditorAwareImpl implements AuditorAware<String> {
             if (!authentication.isAuthenticated()) {
                 return Optional.of(Constant.SYSTEM);
             }
+
+            if ("anonymousUser".equals(authentication.getName()))            {
+                return Optional.of(Constant.SYSTEM);
+            }
+
             return Optional.of(authentication.getName());
 
         } catch (Exception e) {

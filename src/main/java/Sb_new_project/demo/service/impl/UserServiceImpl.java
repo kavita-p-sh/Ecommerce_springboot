@@ -5,6 +5,7 @@ import Sb_new_project.demo.dto.UpdateUserDTO;
 import Sb_new_project.demo.dto.UserResponseDTO;
 import Sb_new_project.demo.entity.Role;
 import Sb_new_project.demo.entity.User;
+import Sb_new_project.demo.enums.RoleName;
 import Sb_new_project.demo.exception.BadRequestException;
 import Sb_new_project.demo.exception.ResourceNotFoundException;
 import Sb_new_project.demo.repository.RoleRepository;
@@ -36,12 +37,17 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final LoggedInUserServiceImpl loggedInUserServiceImpl;
 
-    private User createUser(RegisterRequestDTO dto, String roleName) {
+
+    private User createUser(RegisterRequestDTO dto, RoleName roleName) {
         log.info("Register request for: {}", dto.getUsername());
+
         validateUserNotExists(dto);
+
         Role role = getValidRole(roleName);
+
         User user = buildUser(dto, role);
 
+        log.info("registered successfully");
         return userRepository.save(user);
     }
 
@@ -60,7 +66,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private Role getValidRole(String roleName) {
+    private Role getValidRole(RoleName roleName) {
         log.debug("Fetching role: {}", roleName);
         Role role = roleRepository.findByRoleName(roleName);
 
@@ -75,6 +81,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail().trim());
+        user.setPhoneNumber(dto.getPhoneNumber());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRole(role);
         log.debug("User object created successfully for username: {}", dto.getUsername());
@@ -83,12 +90,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @CachePut(cacheNames = "user", key = "username")
+    @Transactional
     public User registerUser(RegisterRequestDTO dto) {
 
         log.info("Register request received for username: {}", dto.getUsername());
 
-        String roleName = resolveAndValidateRole(dto.getRole());
+        RoleName roleName = resolveAndValidateRole(dto.getRole());
 
         return createUser(dto, roleName);
     }
@@ -96,26 +103,26 @@ public class UserServiceImpl implements UserService {
     /**
      * Validate role.
      */
-    private String resolveAndValidateRole(String requestedRole) {
+    private RoleName resolveAndValidateRole(RoleName requestedRole) {
 
-        if (StringUtils.isEmpty(requestedRole)) {
-            return Constant.ROLE_USER;
+        if (requestedRole == null) {
+            return RoleName.ROLE_USER;
         }
-        String roleName = requestedRole;
 
-        List<String> allowedRoles = List.of(
-                Constant.ROLE_USER,
-                Constant.ROLE_ADMIN,
-                Constant.ROLE_MANAGER
+        List<RoleName> allowedRoles = List.of(
+                RoleName.ROLE_USER,
+                RoleName.ROLE_ADMIN,
+                RoleName.ROLE_MANAGER
         );
 
-        if (!allowedRoles.contains(roleName)) {
-            throw new BadRequestException(Constant.INVALID_ROLE);
+        if (!allowedRoles.contains(requestedRole)) {
+            throw new RuntimeException("Invalid role");
         }
 
-        return roleName;
+        return requestedRole;
     }
     @Override
+    @Transactional
     @Cacheable(cacheNames = "user", key = "'allUsers'")
     public List<UserResponseDTO> getAllUsers() {
 
@@ -124,65 +131,68 @@ public class UserServiceImpl implements UserService {
         List<User> users = userRepository.findAll();
 
         return users.stream()
-                .map(user -> new UserResponseDTO(
-                        user.getUserId(),
-                        user.getUsername(),
-                        user.getEmail(),
-                        user.getRole().getRoleName()
-
-                ))
+                .map(user -> mapToUserResponseDTO(user))
                 .toList();
     }
 
     @Override
     @Cacheable(cacheNames = "user", key = "'allUsers'")
-    public User getUserByUsername(String username)  {
+    public UserResponseDTO getUserByUsername(String username)  {
 
         log.info("Fetching user by username: {}", username);
 
-        return userRepository.findByUsername(username)
+        User user=userRepository.findByUsername(username)
                 .orElseThrow(() ->
                         new RuntimeException(Constant.USER_NOT_FOUND_WITH_USERNAME + username)
                 );
+
+        return mapToUserResponseDTO(user);
+
     }
 
     @Override
-    public User getMyProfile(Authentication authentication) {
+    public UserResponseDTO getMyProfile(Authentication authentication) {
         String username = authentication.getName();
 
-        return userRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(Constant.USER_NOT_FOUND + username));
+
+        return mapToUserResponseDTO(user);
+
     }
 
+
     @Override
-    @CachePut(cacheNames = "user", key = "#username")
-    public User updateUserByUsername(String username, UpdateUserDTO dto) {
+    @Transactional
+    @CachePut(cacheNames = "user", key = "#dto.username")
+    public UserResponseDTO updateUserByUsername(String username, UpdateUserDTO dto) {
         log.info("Updating user with username: {}", username);
 
         User existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(Constant.USER_NOT_FOUND + username));
 
-        if (StringUtils.isEmpty(dto.getUsername())) {
-            existingUser.setUsername(dto.getUsername());
-        }
-
-        if (StringUtils.isEmpty(dto.getEmail())) {
+        if (!StringUtils.isEmpty(dto.getEmail())) {
             existingUser.setEmail(dto.getEmail());
         }
 
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
+        if (dto.getPhoneNumber() != null && !dto.getPhoneNumber().isEmpty()) {
+            existingUser.setPhoneNumber(dto.getPhoneNumber());
+        }
 
         User updatedUser = userRepository.save(existingUser);
 
         log.info("User updated successfully: {}", username);
-        return updatedUser;
+        return mapToUserResponseDTO(updatedUser);
+
     }
 
     @Override
+    @Transactional
     @CachePut(cacheNames = "user", key = "#result.username")
-    public User updateMyProfile(Authentication authentication, UpdateUserDTO dto) {
+    public UserResponseDTO updateMyProfile(Authentication authentication, UpdateUserDTO dto) {
         String username = authentication.getName();
 
         log.info("Updating profile for user: {}", username);
@@ -191,10 +201,6 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(Constant.USER_NOT_FOUND + username));
 
-        if (dto.getUsername() != null && !dto.getUsername().isEmpty()) {
-            existingUser.setUsername(dto.getUsername());
-        }
-
         if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {
             existingUser.setEmail(dto.getEmail());
         }
@@ -202,12 +208,15 @@ public class UserServiceImpl implements UserService {
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
+        if (dto.getPhoneNumber() != null && !dto.getPhoneNumber().isEmpty()) {
+            existingUser.setPhoneNumber(dto.getPhoneNumber());
+        }
 
         User updatedUser = userRepository.save(existingUser);
 
         log.info("Profile updated successfully: {}", username);
 
-        return updatedUser;
+        return mapToUserResponseDTO(updatedUser);
     }
 
     @Override
@@ -225,6 +234,17 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user);
 
         log.info(Constant.USER_DELETED_SUCCESS, username);
+    }
+
+    private UserResponseDTO mapToUserResponseDTO(User user) {
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setRole(user.getRole().getRoleName());
+        dto.setCreatedBy(user.getCreatedBy());
+        dto.setUpdatedBy(user.getUpdatedBy());
+        return dto;
     }
 
 

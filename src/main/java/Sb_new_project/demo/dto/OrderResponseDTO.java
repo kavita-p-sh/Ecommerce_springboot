@@ -12,5 +12,9 @@ public class OrderResponseDTO implements Serializable {
     private Double totalAmount;
     private Integer totalQuantity;
     private String status;
-    private LocalDateTime createdDate;
+    private LocalDateTime createdTimestamp;
+    private String createdBy;
+    private String updatedBy;
+    private LocalDateTime updatedTimeStamp;
+
 }

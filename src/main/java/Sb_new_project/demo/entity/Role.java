@@ -1,5 +1,6 @@
 package Sb_new_project.demo.entity;
 
+import Sb_new_project.demo.enums.RoleName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -19,13 +20,12 @@ public class Role{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long roleId;
 
-    @NotBlank(message = "Role name cannot be blank")
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, unique = true, length = 50)
-    private String roleName;
+    private RoleName roleName;
 
     @OneToMany(mappedBy="role")
     @JsonIgnore
-
     private List<User> users;
 
 }

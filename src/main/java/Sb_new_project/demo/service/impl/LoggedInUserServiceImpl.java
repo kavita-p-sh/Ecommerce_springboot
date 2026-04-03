@@ -33,7 +33,7 @@ public class LoggedInUserServiceImpl implements LoggedInUserService {
                 .map(a -> a.getAuthority())
                 .toList();
 
-        return new LoggedInUserDTO(username, roles);
+        return new LoggedInUserDTO(username, roles.toString());
     }
 
     @Override

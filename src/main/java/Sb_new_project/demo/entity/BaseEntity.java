@@ -7,10 +7,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import jakarta.persistence.EntityListeners;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @MappedSuperclass
@@ -22,10 +19,10 @@ public class BaseEntity {
     private String createdBy;
 
     @CreatedDate
-    private LocalDateTime createdDate;
+    private LocalDateTime createdTimestamp;
 
     private String updatedBy;
 
     @LastModifiedDate
-    private LocalDateTime updatedDate;
+    private LocalDateTime updatedTimestamp;
 }

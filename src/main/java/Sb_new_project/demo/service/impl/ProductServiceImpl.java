@@ -56,6 +56,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     @Cacheable("products")
     public List<ProductResponseDTO> getAllProducts() {
 

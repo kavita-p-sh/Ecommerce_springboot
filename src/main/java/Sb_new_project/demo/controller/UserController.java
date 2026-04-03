@@ -37,28 +37,29 @@ public class UserController {
 
     @RolesAllowed(Constant.ROLE_ADMIN)
     @GetMapping("/{username}")
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
-        log.info("fetching user by username");
+    public ResponseEntity<UserResponseDTO> getUserByUsername(@PathVariable String username) {
+        log.info("fetching user by username: {}", username);
         return ResponseEntity.ok(userService.getUserByUsername(username));
     }
 
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
     @GetMapping("/profile")
-    public ResponseEntity<User> getMyProfile(Authentication authentication) {
+    public ResponseEntity<UserResponseDTO> getMyProfile(Authentication authentication) {
         log.info("fetching user profile");
         return ResponseEntity.ok(userService.getMyProfile(authentication));
     }
 
     @RolesAllowed(Constant.ROLE_ADMIN)
     @PutMapping("/{username}")
-    public ResponseEntity<User> updateUserByUsername(@PathVariable String username, @RequestBody UpdateUserDTO dto) {
+    public ResponseEntity<UserResponseDTO> updateUserByUsername(@PathVariable String username, @RequestBody UpdateUserDTO dto) {
         log.info("update user by admin");
-        return ResponseEntity.ok(userService.updateUserByUsername(username, dto));
+        UserResponseDTO updatedUser= userService.updateUserByUsername(username, dto);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
     @PutMapping("/update/profile")
-    public ResponseEntity<User> updateMyProfile(
+    public ResponseEntity<UserResponseDTO> updateMyProfile(
             Authentication authentication,
             @RequestBody UpdateUserDTO dto) {
         return ResponseEntity.ok(userService.updateMyProfile(authentication, dto));

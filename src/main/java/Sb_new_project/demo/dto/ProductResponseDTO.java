@@ -13,6 +13,8 @@ public class ProductResponseDTO implements Serializable {
     private String description;
     private Double price;
     private Integer quantity;
-    private LocalDateTime createdDate;
+    private String createdBy;
+    private LocalDateTime createdTimestamp;
     private String updatedBy;
+    private LocalDateTime updatedTimestamp;
 }

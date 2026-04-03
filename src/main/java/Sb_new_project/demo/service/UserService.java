@@ -23,16 +23,15 @@ public interface UserService {
 
     User registerUser(RegisterRequestDTO dto);
 
-
     List<UserResponseDTO> getAllUsers();
 
-    User getUserByUsername(String username);
+    UserResponseDTO getUserByUsername(String username);
 
-    User getMyProfile(Authentication authentication);
+    UserResponseDTO getMyProfile(Authentication authentication);
 
-    User updateUserByUsername(String username, UpdateUserDTO dto);
+    UserResponseDTO updateUserByUsername(String username, UpdateUserDTO dto);
 
-    User updateMyProfile(Authentication authentication, UpdateUserDTO dto);
+    UserResponseDTO updateMyProfile(Authentication authentication, UpdateUserDTO dto);
 
     void deleteUserByUsername(String username);
 }

@@ -1,6 +1,6 @@
 package Sb_new_project.demo.controller;
 
-import Sb_new_project.demo.dto.OrderRequestDTO;
+import Sb_new_project.demo.dto.OrderItemRequest;
 import Sb_new_project.demo.dto.OrderResponseDTO;
 import Sb_new_project.demo.service.OrderService;
 import Sb_new_project.demo.service.LoggedInUserService;
@@ -25,15 +25,13 @@ import java.util.List;
 public class OrdersController {
 
     private final OrderService orderService;
-    private final LoggedInUserService loggedInUserService;
-
     /**
      * Add order
      */
     @PostMapping
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN})
     public ResponseEntity<OrderResponseDTO> createOrder(
-            @Valid @RequestBody OrderRequestDTO dto) {
+            @Valid @RequestBody List<OrderItemRequest>dto) {
 
         log.info("Order creation request");
         OrderResponseDTO response = orderService.createOrder(dto);
@@ -62,7 +60,6 @@ public class OrdersController {
     @PutMapping("/cancel/{orderId}")
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
     public ResponseEntity<String> cancelOrder(@PathVariable Long orderId) {
-
         log.warn("Cancelling order with id {}", orderId);
         orderService.cancelOrder(orderId);
         return ResponseEntity.ok(Constant.CANCELLED);

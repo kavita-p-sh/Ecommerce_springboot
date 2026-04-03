@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
@@ -19,7 +18,7 @@ public class Product extends BaseEntity {
     private Long productId;
 
     @NotBlank(message = "Product name cannot be blank")
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false, length = 150,unique=true)
     private String name;
 
     @NotBlank(message = "Description cannot be blank")

@@ -16,7 +16,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
 /**
  * Handles login and registration functionality.
@@ -47,16 +46,7 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtUtil.generateToken(userDetails);
 
-        List<String> roles = userDetails.getAuthorities()
-                .stream()
-                .map(a -> a.getAuthority())
-                .toList();
-
-        return new LoginResponseDTO(
-                token,
-                userDetails.getUsername(),
-                roles
-        );
+        return new LoginResponseDTO(token);
     }
 
     @Override
@@ -66,9 +56,9 @@ public class AuthServiceImpl implements AuthService {
         User user = userService.registerUser(dto);
 
         UserResponseDTO response = new UserResponseDTO();
-        response.setUserId(user.getUserId());
         response.setUsername(user.getUsername());
         response.setEmail(user.getEmail());
+        response.setPhoneNumber(user.getPhoneNumber());
         response.setRole(user.getRole().getRoleName());
 
         return response;
