@@ -68,7 +68,7 @@ public class SpringSecurity {
                         .requestMatchers(HttpMethod.PUT, "/api/users/*").hasAuthority(Constant.ROLE_ADMIN)
                         .requestMatchers(HttpMethod.DELETE, "/api/users/*").hasAuthority(Constant.ROLE_ADMIN)
 
-                        .requestMatchers(HttpMethod.POST, "/api/orders").hasAuthority(Constant.ROLE_USER)
+                        .requestMatchers(HttpMethod.POST, "/api/orders").hasAnyAuthority(Constant.ROLE_USER, Constant.ROLE_ADMIN)
                         .requestMatchers(HttpMethod.GET, "/api/orders").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/orders/*").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/orders/cancel/*").authenticated()
