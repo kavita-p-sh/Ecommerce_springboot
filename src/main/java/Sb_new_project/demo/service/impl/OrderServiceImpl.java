@@ -1,5 +1,6 @@
 package Sb_new_project.demo.service.impl;
 
+import Sb_new_project.demo.dto.LoggedInUserDTO;
 import Sb_new_project.demo.dto.OrderResponseDTO;
 import Sb_new_project.demo.entity.*;
 import Sb_new_project.demo.enums.OrderStatusEnum;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -164,6 +166,21 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * get All oders
+     *
+     * @return
+     */
+    @Cacheable(value = "orders", key = "'AllOrders'")
+    @Override
+    public List<OrderResponseDTO> getAllOrders() {
+
+        return orderRepository.findAll()
+                .stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
+    /**
      * Getting Orderby username
      *
      * @return
@@ -184,20 +201,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * get All oders
-     *
+     * Get Orders Role_based
      * @return
      */
-    @Cacheable(value = "orders", key = "'AllOrders'")
+
     @Override
-    public List<OrderResponseDTO> getAllOrders() {
+    public List<OrderResponseDTO> getOrders() {
 
-        return orderRepository.findAll()
-                .stream()
-                .map(this::mapToDTO)
-                .toList();
+        LoggedInUserDTO user = loggedInUserServiceImpl.getCurrentUser();
+
+        if (user.getRole().equals(Constant.ROLE_ADMIN)) {
+            log.info("Fetching all Orders by Admin");
+            return getAllOrders();
+        }
+
+        log.info("Fetching Orders By user");
+        return getOrdersByUser();
     }
-
     /**
      * Cancel the order
      *
@@ -206,7 +226,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     @CacheEvict(value = "orders", allEntries = true)
-    public void cancelOrder(Long orderId) {
+    public OrderResponseDTO cancelOrder(Long orderId) {
 
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
 
@@ -241,6 +261,8 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
 
         log.info("Order cancelled with id: {} by user: {}", orderId, username);
+
+        return mapToDTO(order);
     }
 
     /**

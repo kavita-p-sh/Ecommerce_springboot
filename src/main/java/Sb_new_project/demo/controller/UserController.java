@@ -28,18 +28,17 @@ public class UserController {
 
     private final UserService userService;
 
-    @RolesAllowed({Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        log.info("fetching all users");
-        return ResponseEntity.ok(userService.getAllUsers());
-    }
+    public ResponseEntity<List<UserResponseDTO>> getUsers(
+            @RequestParam(required = false) String username) {
 
-    @RolesAllowed(Constant.ROLE_ADMIN)
-    @GetMapping("/{username}")
-    public ResponseEntity<UserResponseDTO> getUserByUsername(@PathVariable String username) {
-        log.info("fetching user by username: {}", username);
-        return ResponseEntity.ok(userService.getUserByUsername(username));
+        if (username != null && !username.isBlank()) {
+            return ResponseEntity.ok(
+                    List.of(userService.getUserByUsername(username))
+            );
+        }
+
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})

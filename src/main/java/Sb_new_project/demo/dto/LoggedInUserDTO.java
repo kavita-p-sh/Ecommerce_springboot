@@ -11,5 +11,5 @@ import java.util.List;
 @NoArgsConstructor
 public class LoggedInUserDTO {
     private String username;
-    private String roles;
+    private String role;
 }

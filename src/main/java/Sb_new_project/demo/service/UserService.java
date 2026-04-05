@@ -23,6 +23,8 @@ public interface UserService {
 
     User registerUser(RegisterRequestDTO dto);
 
+    List<UserResponseDTO> getUsers(String username);
+
     List<UserResponseDTO> getAllUsers();
 
     UserResponseDTO getUserByUsername(String username);

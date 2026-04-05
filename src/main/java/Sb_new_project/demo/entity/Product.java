@@ -1,9 +1,8 @@
 package Sb_new_project.demo.entity;
-
+import Sb_new_project.demo.util.RegexConstant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.util.List;
@@ -19,14 +18,15 @@ public class Product extends BaseEntity {
 
     @NotBlank(message = "Product name cannot be blank")
     @Column(nullable = false, length = 150,unique=true)
+    @Pattern(regexp = RegexConstant.PRODUCT_NAME, message = "Invalid product name")
     private String name;
 
     @NotBlank(message = "Description cannot be blank")
     @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 
-    @Positive(message = "Price must be greater than 0")
     @Column(nullable = false)
+    @DecimalMin(value = "0.01", message = "Price must be greater than 0")
     private Double price;
 
     @Positive(message = "Quantity must be 0 or more")

@@ -122,6 +122,16 @@ public class UserServiceImpl implements UserService {
         return requestedRole;
     }
     @Override
+    public List<UserResponseDTO> getUsers(String username) {
+
+        if (username != null && !username.isBlank()) {
+            return List.of(getUserByUsername(username));
+        }
+        return getAllUsers();
+    }
+
+
+    @Override
     @Transactional
     @Cacheable(cacheNames = "user", key = "'allUsers'")
     public List<UserResponseDTO> getAllUsers() {

@@ -1,6 +1,8 @@
 package Sb_new_project.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
@@ -22,6 +24,7 @@ public class Orders extends BaseEntity {
     @PositiveOrZero(message = "Total amount must be 0 or greater")
     @NotNull
     @Column(nullable = false)
+    @DecimalMin(value = "0.01", message = "Price must be greater than 0")
     private Double totalAmount;
 
     @PositiveOrZero(message = "Total quantity must be 0 or greater")

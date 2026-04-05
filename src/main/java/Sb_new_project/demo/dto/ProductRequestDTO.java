@@ -1,11 +1,16 @@
 package Sb_new_project.demo.dto;
 
+import Sb_new_project.demo.util.RegexConstant;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+
+import java.math.BigDecimal;
+
 
 @Data
 public class ProductRequestDTO {
         @NotBlank(message = "Product name cannot be empty")
+        @Pattern(regexp = RegexConstant.PRODUCT_NAME, message = "Invalid product name")
         private String name;
 
         @Size(max = 500, message = "Description too long")

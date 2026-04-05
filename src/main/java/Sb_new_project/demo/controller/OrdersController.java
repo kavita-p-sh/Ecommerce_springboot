@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,23 +45,15 @@ public class OrdersController {
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN})
     public ResponseEntity<List<OrderResponseDTO>> getOrders() {
         log.info("Fetching orders");
-        return ResponseEntity.ok(orderService.getAllOrders());
-    }
-
-    @GetMapping("/myorder")
-    @RolesAllowed({Constant.ROLE_USER,Constant.ROLE_ADMIN})
-    public ResponseEntity<List<OrderResponseDTO>> getMyOrders() {
-
-        log.info("Fetching orders for user");
-        return ResponseEntity.ok(orderService.getOrdersByUser());
+        return ResponseEntity.ok(orderService.getOrders());
     }
 
 
     @PutMapping("/cancel/{orderId}")
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
-    public ResponseEntity<String> cancelOrder(@PathVariable Long orderId) {
+    public ResponseEntity<OrderResponseDTO> cancelOrder(@PathVariable Long orderId) {
         log.warn("Cancelling order with id {}", orderId);
-        orderService.cancelOrder(orderId);
-        return ResponseEntity.ok(Constant.CANCELLED);
+        OrderResponseDTO response=orderService.cancelOrder(orderId);
+        return ResponseEntity.ok(response);
     }
 }

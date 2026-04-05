@@ -38,6 +38,7 @@ public class ProductController {
         ProductResponseDTO response = productService.addProduct(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
     @GetMapping
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
     public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
@@ -45,11 +46,10 @@ public class ProductController {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
-    @PutMapping("/{name}")
-    @RolesAllowed(Constant.ROLE_ADMIN)
-    public ResponseEntity<ProductResponseDTO> updateProduct(@PathVariable String name, @Valid @RequestBody ProductUpdateDTO dto) {
-        log.info("Update product: {}", name);
-        ProductResponseDTO response = productService.updateProductByName(name, dto);
+    @PutMapping
+    public ResponseEntity<ProductResponseDTO> updateProduct(@Valid @RequestBody ProductUpdateDTO dto) {
+        log.info("Update product: {}", dto.getName());
+        ProductResponseDTO response = productService.updateProductByName(dto );
         return ResponseEntity.ok(response);
     }
 

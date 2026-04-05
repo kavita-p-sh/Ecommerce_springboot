@@ -3,6 +3,7 @@ package Sb_new_project.demo.service;
 import Sb_new_project.demo.dto.ProductRequestDTO;
 import Sb_new_project.demo.dto.ProductResponseDTO;
 import Sb_new_project.demo.dto.ProductUpdateDTO;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public interface ProductService {
     List<ProductResponseDTO> getAllProducts();
 
 
-    ProductResponseDTO updateProductByName(String name, ProductUpdateDTO dto);
+    ProductResponseDTO updateProductByName(ProductUpdateDTO dto);
 
     void deleteProductByName(String name);
 }

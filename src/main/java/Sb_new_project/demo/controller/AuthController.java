@@ -42,6 +42,7 @@ public class AuthController {
     }
 
     /**
+     *
      * Logout user.
      */
     @PostMapping("/logout")

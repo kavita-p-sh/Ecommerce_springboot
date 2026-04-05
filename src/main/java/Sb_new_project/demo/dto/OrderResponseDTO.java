@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public class OrderResponseDTO implements Serializable {
 
     private Long orderId;
-    private Double totalAmount;
+    private Double  totalAmount;
     private Integer totalQuantity;
     private String status;
     private LocalDateTime createdTimestamp;

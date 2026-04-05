@@ -12,7 +12,6 @@ import Sb_new_project.demo.util.Constant;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
@@ -70,20 +69,20 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
-    public ProductResponseDTO updateProductByName(String name, ProductUpdateDTO updatedto) {
+    public ProductResponseDTO updateProductByName(ProductUpdateDTO updatedto) {
 
-        log.info("Updating product: {}", name);
+        log.info("Updating product: {}", updatedto.getName());
 
         LoggedInUserDTO user = loggedInUserServiceImpl.getCurrentUser();
 
-        if (!user.getRoles().contains(Constant.ROLE_ADMIN)) {
+        if (!user.getRole().contains(Constant.ROLE_ADMIN)) {
             log.error("Access denied for user: {}", user.getUsername());
             throw new AccessDeniedException(Constant.ONLY_ADMIN_ALLOWED);
         }
 
-        Product product = productRepository.findByName(name)
+        Product product = productRepository.findByName(updatedto.getName())
                 .orElseThrow(() ->
-                        new UserNotFoundException(Constant.PRODUCT_NOT_FOUND + name));
+                        new UserNotFoundException(Constant.PRODUCT_NOT_FOUND + updatedto.getName()));
 
 
         if (updatedto.getName() != null && !updatedto.getName().isEmpty()) {

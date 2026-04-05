@@ -2,6 +2,7 @@ package Sb_new_project.demo.service;
 
 import Sb_new_project.demo.dto.OrderResponseDTO;
 import Sb_new_project.demo.entity.OrderItem;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -19,9 +20,10 @@ public interface OrderService {
 
     OrderResponseDTO createOrder(List<OrderItem> items);
 
+    List<OrderResponseDTO> getOrders();
     List<OrderResponseDTO> getOrdersByUser();
 
     List<OrderResponseDTO> getAllOrders();
 
-    void cancelOrder(Long orderId);
+    OrderResponseDTO cancelOrder(Long orderId);
 }

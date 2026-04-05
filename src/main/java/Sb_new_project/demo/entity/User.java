@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
@@ -22,19 +21,14 @@ public class User extends BaseEntity {
 
     @NotBlank
     @Pattern(regexp = RegexConstant.USERNAME, message = "Username must me start with a letter and contains only letter ,numbers,and underScores")
-    @Column(nullable = false, unique = true)
-    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @Column(unique = true , nullable = false)
     private String username;
 
     @NotBlank(message = "Password cannot be blank")
-    @Pattern(regexp = RegexConstant.PASSWORD, message = "Password must contain at least 6 characters, one letter, one number and one special character")
-    @Size(min = 6, max = 20, message = "Password must be at least 6 characters")
-    @Column(nullable = false, length = 255)
     private String password;
 
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = RegexConstant.PHONE, message = "Invalid phone number")
-    @Size(min = 10, max = 10, message = "Phone number must be 10 digits")
     private String phoneNumber;
 
 
