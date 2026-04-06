@@ -31,4 +31,5 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleBadCredentials(BadCredentialsException ex) {
         return new ResponseEntity<>(Constant.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
     }
+
 }

@@ -39,21 +39,22 @@ public class ProductController {
     public ResponseEntity<ProductResponseDTO> createProduct(
             @Valid @RequestBody ProductRequestDTO dto) {
 
-        log.info("create Product ", dto.getName());
+        log.info("creating Product {}", dto.getName());
         ProductResponseDTO response = productService.addProduct(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
-     * get all products
+     * get all products and filter
      * @return all product
      */
-
     @GetMapping
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
-    public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
-        log.info("Fetching All product ");
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<List<ProductResponseDTO>> getProducts(
+            @RequestBody ProductResponseDTO filterDTO) {
+
+        log.info("Fetching products with filters: {}", filterDTO);
+        return ResponseEntity.ok(productService.getProducts(filterDTO));
     }
 
     /**

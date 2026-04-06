@@ -15,7 +15,7 @@ public class OrderStatusEntity  {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long statusId;
 
-    @NotBlank(message = "Status name cannot be blank")
+    @NotBlank(message = "{order.status.required}")
     @Column(nullable = false, unique = true)
     private String statusName;
 

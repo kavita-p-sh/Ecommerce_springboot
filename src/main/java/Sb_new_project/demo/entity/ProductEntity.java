@@ -17,21 +17,22 @@ public class ProductEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productId;
 
-    @NotBlank(message = "Product name cannot be blank")
+    @NotBlank(message = "{product.name.required}")
     @Column(nullable = false, length = 150,unique=true)
-    @Pattern(regexp = RegexConstant.PRODUCT_NAME, message = "Invalid product name")
+    @Pattern(regexp = RegexConstant.PRODUCT_NAME, message = "{product.name.invalid}")
     private String name;
 
-    @NotBlank(message = "Description cannot be blank")
+    @NotBlank(message = "{product.description.required}")
     @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 
     @Column(nullable = false)
-    @Digits(integer = 10, fraction = 2, message = "Price can have up to 10 digits and 2 decimal places")
-    @DecimalMin(value = "0.01", message = "Price must be greater than 0")
+    @Digits(integer = 10, fraction = 2, message = "{product.price.format}")
+    @DecimalMin(value = "0.01", message = "{product.price.min}")
     private BigDecimal price;
 
-    @Positive(message = "Quantity must be 0 or more")
+
+    @Positive(message = "{product.quantity.positive}")
     @Column(nullable = false)
     private Integer quantity;
 

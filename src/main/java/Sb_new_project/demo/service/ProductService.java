@@ -21,6 +21,7 @@ public interface ProductService {
 
     List<ProductResponseDTO> getAllProducts();
 
+    List<ProductResponseDTO> getProducts(ProductResponseDTO filterDTO);
 
     ProductResponseDTO updateProductByName(ProductUpdateDTO dto);
 

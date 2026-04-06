@@ -15,11 +15,8 @@ import Sb_new_project.demo.util.Constant;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final LoggedInUserServiceImpl loggedInUserServiceImpl;
+
 
 
     private UserEntity createUser(RegisterRequestDTO dto, RoleName roleName) {
@@ -122,30 +120,23 @@ public class UserServiceImpl implements UserService {
 
         return requestedRole;
     }
+
     @Override
-    public List<UserResponseDTO> getUsers(Long userid, String username, String email) {
+    public List<UserResponseDTO> getUsers(UserResponseDTO filterDTO) {
 
-        if (userid != null) {
-            return List.of(getUserById(userid));
+        if (filterDTO.getUsername() != null && !filterDTO.getUsername().isBlank()) {
+            return List.of(getUserByUsername(filterDTO.getUsername()));
         }
 
-        if (StringUtils.hasText(username)) {
-            return List.of(getUserByUsername(username));
+        if (filterDTO.getEmail() != null && !filterDTO.getEmail().isBlank()) {
+            return List.of(getUserByEmail(filterDTO.getEmail()));
         }
 
-        if (StringUtils.hasText(email)) {
-            return List.of(getUserByEmail(email));
+        if (filterDTO.getPhoneNumber() != null && !filterDTO.getPhoneNumber().isBlank()) {
+            return List.of(getUserByPhoneNumber(filterDTO.getPhoneNumber()));
         }
 
         return getAllUsers();
-    }
-
-    @Override
-    public UserResponseDTO getUserById(Long userid) {
-        UserEntity user = userRepository.findById(userid)
-                .orElseThrow(() -> new RuntimeException(Constant.USER_NOT_FOUND + userid));
-
-        return mapToUserResponseDTO(user);
     }
 
     @Override
@@ -162,6 +153,14 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException(Constant.USER_NOT_FOUND + email));
 
         return mapToUserResponseDTO(user);
+    }
+
+    @Override
+    public UserResponseDTO getUserByPhoneNumber(String phoneNumber) {
+        UserEntity user= userRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new RuntimeException(Constant.USER_NOT_FOUND + phoneNumber));
+        return mapToUserResponseDTO(user);
+
     }
 
     @Override

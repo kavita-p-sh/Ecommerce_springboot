@@ -19,11 +19,11 @@ public class OrdersEntity extends BaseEntity {
 
     @NotNull
     @Column(nullable = false)
-    @DecimalMin(value = "0.01", message = "Price must be greater than 0")
-    @Digits(integer = 10, fraction = 2, message = "Price can have up to 10 digits and 2 decimal places")
+    @DecimalMin(value = "0.01", message = "{order.amount.min}")
+    @Digits(integer = 10, fraction = 2, message = "{order.amount.format}")
     private BigDecimal totalAmount;
 
-    @PositiveOrZero(message = "Total quantity must be greater than 0")
+    @Positive(message = "{order.quantity.positive}")
     @Column(nullable = false)
     private Integer totalQuantity;
 

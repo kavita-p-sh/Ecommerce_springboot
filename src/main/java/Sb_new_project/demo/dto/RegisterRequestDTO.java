@@ -10,25 +10,25 @@ import lombok.Data;
 @Data
 public class RegisterRequestDTO {
 
-    @NotBlank(message = "Username required")
-    @Pattern(regexp = RegexConstant.USERNAME, message = "Username must start with a letter and contain only letters, numbers, and underscore")
+    @NotBlank(message = "{username.required}")
+    @Pattern(regexp = RegexConstant.USERNAME, message = "{username.valid}")
     private String username;
 
 
-    @NotBlank(message = "Email required")
-    @Pattern(regexp = RegexConstant.EMAIL, message = "Email must be valid")
+    @NotBlank(message = "{email.required}")
+    @Pattern(regexp = RegexConstant.EMAIL, message = "{email.valid}")
     private String email;
 
 
-    @NotBlank(message = "Password required")
-    @Pattern(regexp = RegexConstant.PASSWORD, message = "Password must contain at least 6 characters, one letter, one number and one special character")
+    @NotBlank(message ="{password.required}")
+    @Pattern(regexp = RegexConstant.PASSWORD, message = "{user.password.pattern}")
     private String password;
 
-    @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = RegexConstant.PHONE, message = "Invalid phone number")
+    @NotBlank(message = "{phone.required}")
+    @Pattern(regexp = RegexConstant.PHONE, message = "{phone.format}")
     private String phoneNumber;
 
-    @NotNull(message = "Role is required")
+    @NotNull(message = "{role.required}")
     @Enumerated(EnumType.STRING)
     private RoleName role;
 

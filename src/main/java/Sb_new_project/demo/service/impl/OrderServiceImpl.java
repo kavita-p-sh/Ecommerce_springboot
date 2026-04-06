@@ -1,6 +1,5 @@
 package Sb_new_project.demo.service.impl;
 
-import Sb_new_project.demo.dto.LoggedInUserDTO;
 import Sb_new_project.demo.dto.OrderResponseDTO;
 import Sb_new_project.demo.entity.*;
 import Sb_new_project.demo.enums.OrderStatusEnum;
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -171,6 +169,49 @@ public class OrderServiceImpl implements OrderService {
             orderItemRepository.save(orderItem);
         }
     }
+    @Override
+    public List<OrderResponseDTO> getOrders(OrderResponseDTO filterDTO) {
+
+        log.info("Fetching orders with filters: {}", filterDTO);
+
+        if (filterDTO.getStatus() != null && !filterDTO.getStatus().isBlank()) {
+            log.info("Fetching orders by status: {}", filterDTO.getStatus());
+
+            return orderRepository.findByOrderStatus_StatusName(filterDTO.getStatus())
+                    .stream()
+                    .map(this::mapToDTO)
+                    .toList();
+        }
+
+        if (filterDTO.getCreatedBy() != null && !filterDTO.getCreatedBy().isBlank()) {
+            log.info("Fetching orders by createdBy: {}", filterDTO.getCreatedBy());
+
+            return orderRepository.findByCreatedBy(filterDTO.getCreatedBy())
+                    .stream()
+                    .map(this::mapToDTO)
+                    .toList();
+        }
+
+        if (filterDTO.getTotalAmount() != null) {
+            log.info("Fetching orders by totalAmount: {}", filterDTO.getTotalAmount());
+
+            return orderRepository.findByTotalAmount(filterDTO.getTotalAmount())
+                    .stream()
+                    .map(this::mapToDTO)
+                    .toList();
+        }
+
+        if (filterDTO.getTotalQuantity() != null) {
+            log.info("Fetching orders by totalQuantity: {}", filterDTO.getTotalQuantity());
+
+            return orderRepository.findByTotalQuantity(filterDTO.getTotalQuantity())
+                    .stream()
+                    .map(this::mapToDTO)
+                    .toList();
+        }
+
+        return getAllOrders();
+    }
 
     /**
      * get All oders
@@ -207,24 +248,6 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
     }
 
-    /**
-     * Get Orders Role_based
-     * @return
-     */
-
-    @Override
-    public List<OrderResponseDTO> getOrders() {
-
-        LoggedInUserDTO user = loggedInUserServiceImpl.getCurrentUser();
-
-        if (user.getRole().equals(Constant.ROLE_ADMIN)) {
-            log.info("Fetching all Orders by Admin");
-            return getAllOrders();
-        }
-
-        log.info("Fetching Orders By user");
-        return getOrdersByUser();
-    }
     /**
      * Cancel the order
      *

@@ -19,21 +19,21 @@ public class UserEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @NotBlank
-    @Pattern(regexp = RegexConstant.USERNAME, message = "Username must me start with a letter and contains only letter ,numbers,and underScores")
+    @NotBlank(message = "{username.required}")
+    @Pattern(regexp = RegexConstant.USERNAME, message = "{username.valid}")
     @Column(unique = true , nullable = false)
     private String username;
 
-    @NotBlank(message = "Password cannot be blank")
+    @NotBlank(message = "{password.required}")
     private String password;
 
-    @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = RegexConstant.PHONE, message = "Invalid phone number")
+    @NotBlank(message = "{phone.required}")
+    @Pattern(regexp = RegexConstant.PHONE, message = "{phone.format}")
     @Column(nullable = false, unique = true)
     private String phoneNumber;
 
-    @NotBlank(message = "Email cannot be blank")
-    @Pattern(regexp = RegexConstant.EMAIL, message = "Email must be valid")
+    @NotBlank(message = "{email.required}")
+    @Pattern(regexp = RegexConstant.EMAIL, message = "{email.valid}")
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 

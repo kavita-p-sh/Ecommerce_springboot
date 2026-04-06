@@ -48,13 +48,14 @@ public class OrdersController {
      * Get orders.
      * Admin -gets all orders
      * User -gets only their orders
+     * filtering
      * @return list of orders
      */
     @GetMapping
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN})
-    public ResponseEntity<List<OrderResponseDTO>> getOrders() {
-        log.info("Fetching orders");
-        return ResponseEntity.ok(orderService.getOrders());
+    public ResponseEntity<List<OrderResponseDTO>> getOrders(@RequestBody OrderResponseDTO filterDTO)  {
+        log.info("Fetching orders :{}",filterDTO);
+        return ResponseEntity.ok(orderService.getOrders(filterDTO));
     }
 
     /**

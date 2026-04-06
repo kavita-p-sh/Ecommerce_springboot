@@ -54,6 +54,38 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<ProductResponseDTO> getProducts(ProductResponseDTO filterDTO) {
+
+        log.info("Fetching products with filters: {}", filterDTO);
+
+        if (filterDTO.getName() != null && !filterDTO.getName().isBlank()) {
+            log.info("Fetching product by name: {}", filterDTO.getName());
+
+            ProductEntity product = productRepository.findByName(filterDTO.getName())
+                    .orElseThrow(() -> new RuntimeException(Constant.PRODUCT_NOT_FOUND + filterDTO.getName()));
+            return List.of(mapToResponse(product));
+        }
+
+        if (filterDTO.getPrice() != null) {
+            log.info("Fetching products by price: {}", filterDTO.getPrice());
+            return productRepository.findByPrice(filterDTO.getPrice())
+                    .stream()
+                    .map(this::mapToResponse)
+                    .toList();
+        }
+
+        if (filterDTO.getQuantity() != null) {
+            log.info("Fetching products by quantity: {}", filterDTO.getQuantity());
+            return productRepository.findByQuantity(filterDTO.getQuantity())
+                    .stream()
+                    .map(this::mapToResponse)
+                    .toList();
+        }
+
+        return getAllProducts();
+    }
+
+    @Override
     @Transactional
     @Cacheable("products")
     public List<ProductResponseDTO> getAllProducts() {

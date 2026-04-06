@@ -20,8 +20,9 @@ public interface OrderService {
 
     OrderResponseDTO createOrder(List<OrderItemEntity> items);
 
-    List<OrderResponseDTO> getOrders();
     List<OrderResponseDTO> getOrdersByUser();
+
+    List<OrderResponseDTO> getOrders(OrderResponseDTO filterDTO);
 
     List<OrderResponseDTO> getAllOrders();
 

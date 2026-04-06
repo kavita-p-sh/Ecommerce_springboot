@@ -8,15 +8,15 @@ import lombok.Data;
 @Data
 public class UpdateUserDTO {
 
-    @Pattern(regexp = RegexConstant.USERNAME, message = "Username must start with a letter and contain only letters, numbers, spaces, and underscore")
+    @Pattern(regexp = RegexConstant.USERNAME, message ="{user.username.valid}")
     private String username;
 
-    @Pattern(regexp = RegexConstant.EMAIL, message = "Email must be valid")
+    @Pattern(regexp = RegexConstant.EMAIL, message = "{user.email.valid}")
     private String email;
 
-    @Pattern(regexp = RegexConstant.PASSWORD, message = "Password must contain at least 6 characters, one letter, one number and one special character")
+    @Pattern(regexp = RegexConstant.PASSWORD, message = "{user.password.pattern}")
     private String password;
 
-    @Pattern(regexp = RegexConstant.PHONE, message = "Invalid phone number")
+    @Pattern(regexp = RegexConstant.PHONE, message = "{phone.format}")
     private String phoneNumber;
 }

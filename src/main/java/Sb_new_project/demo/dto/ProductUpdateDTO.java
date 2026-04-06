@@ -9,16 +9,16 @@ import java.math.BigDecimal;
 @Data
 public class ProductUpdateDTO {
 
-    @Pattern(regexp = RegexConstant.PRODUCT_NAME, message = "Invalid product name")
+    @Pattern(regexp = RegexConstant.PRODUCT_NAME, message = "{product.name.invalid}")
     private String name;
 
-    @Size(min = 150, max = 500, message = "Description must be between 150 and 500 characters")
+    @Size(max = 500, message = "{product.description.size}")
     private String description;
 
-    @DecimalMin(value = "0.01", message = "Price must be greater than 0")
-    @Digits(integer = 10, fraction = 2, message = "Price can have up to 2 decimal places")
+    @DecimalMin(value = "0.01", message = "{product.price.min}")
+    @Digits(integer = 10, fraction = 2, message = "{product.price.format}")
     private BigDecimal price;
 
-    @Positive(message = "Quantity must me greater than 0")
+    @Positive(message = "{product.quantity.positive}")
     private Integer quantity;
 }

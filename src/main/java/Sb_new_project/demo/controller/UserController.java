@@ -26,23 +26,17 @@ public class UserController {
 
     /**
      * Get users based on filters
-     * @param userid
-     * @param username
-     * @param email
      * @return
      */
     @RolesAllowed({Constant.ROLE_ADMIN})
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getUsers(
-           @RequestParam(required = false) Long userid ,
-           @RequestParam(required = false) String username,
-           @RequestParam(required = false) String email) {
+            @RequestBody UserResponseDTO filterDTO) {
 
-        log.info("Fetching users with - userid: {}, username: {}, email: {}",
-                userid, username, email);
-         return ResponseEntity.ok(userService.getUsers(userid, username, email));
-    }
+            log.info("Fetching users with filters: {}", filterDTO);
+            return ResponseEntity.ok(userService.getUsers(filterDTO));
 
+     }
     /**
      * Get profile of currently logged-in user
      * @param authentication
