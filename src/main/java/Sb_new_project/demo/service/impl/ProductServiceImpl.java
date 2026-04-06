@@ -4,7 +4,7 @@ import Sb_new_project.demo.dto.LoggedInUserDTO;
 import Sb_new_project.demo.dto.ProductRequestDTO;
 import Sb_new_project.demo.dto.ProductResponseDTO;
 import Sb_new_project.demo.dto.ProductUpdateDTO;
-import Sb_new_project.demo.entity.Product;
+import Sb_new_project.demo.entity.ProductEntity;
 import Sb_new_project.demo.exception.UserNotFoundException;
 import Sb_new_project.demo.repository.ProductRepository;
 import Sb_new_project.demo.service.ProductService;
@@ -40,7 +40,7 @@ public class ProductServiceImpl implements ProductService {
             throw new IllegalArgumentException(Constant.PRODUCT_ALREADY_EXISTS + requestDTO.getName());
         }
 
-        Product product = new Product();
+        ProductEntity product = new ProductEntity();
         product.setName(requestDTO.getName());
         product.setDescription(requestDTO.getDescription());
         product.setPrice(requestDTO.getPrice());
@@ -80,7 +80,7 @@ public class ProductServiceImpl implements ProductService {
             throw new AccessDeniedException(Constant.ONLY_ADMIN_ALLOWED);
         }
 
-        Product product = productRepository.findByName(updatedto.getName())
+        ProductEntity product = productRepository.findByName(updatedto.getName())
                 .orElseThrow(() ->
                         new UserNotFoundException(Constant.PRODUCT_NOT_FOUND + updatedto.getName()));
 
@@ -109,7 +109,7 @@ public class ProductServiceImpl implements ProductService {
 
         product.setUpdatedBy(user.getUsername());
 
-        Product savedProduct = productRepository.save(product);
+        ProductEntity savedProduct = productRepository.save(product);
 
         log.info("Product updated successfully: {}", savedProduct.getName());
 
@@ -123,14 +123,14 @@ public class ProductServiceImpl implements ProductService {
 
         log.info("Deleting product: {}", name);
 
-        Product product = productRepository.findByName(name)
+        ProductEntity product = productRepository.findByName(name)
                 .orElseThrow(() ->
                         new UserNotFoundException(Constant.PRODUCT_NOT_FOUND + name));
 
         productRepository.delete(product);
     }
 
-    private ProductResponseDTO mapToResponse(Product product) {
+    private ProductResponseDTO mapToResponse(ProductEntity product) {
 
         ProductResponseDTO responseDTO = new ProductResponseDTO();
 

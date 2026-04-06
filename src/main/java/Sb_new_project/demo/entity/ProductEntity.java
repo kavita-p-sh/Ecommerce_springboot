@@ -5,12 +5,13 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
 @Table(name = "products")
 @Data
-public class Product extends BaseEntity {
+public class ProductEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,8 +27,9 @@ public class Product extends BaseEntity {
     private String description;
 
     @Column(nullable = false)
+    @Digits(integer = 10, fraction = 2, message = "Price can have up to 10 digits and 2 decimal places")
     @DecimalMin(value = "0.01", message = "Price must be greater than 0")
-    private Double price;
+    private BigDecimal price;
 
     @Positive(message = "Quantity must be 0 or more")
     @Column(nullable = false)
@@ -35,7 +37,7 @@ public class Product extends BaseEntity {
 
     @OneToMany(mappedBy = "product")
     @JsonIgnore
-    private List<OrderItem> items;
+    private List<OrderItemEntity> items;
 
 
 }

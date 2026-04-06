@@ -1,7 +1,7 @@
 package Sb_new_project.demo.controller;
 
 import Sb_new_project.demo.dto.OrderResponseDTO;
-import Sb_new_project.demo.entity.OrderItem;
+import Sb_new_project.demo.entity.OrderItemEntity;
 import Sb_new_project.demo.service.OrderService;
 import Sb_new_project.demo.util.Constant;
 import jakarta.annotation.security.RolesAllowed;
@@ -25,13 +25,16 @@ import java.util.List;
 public class OrdersController {
 
     private final OrderService orderService;
+
     /**
-     * Add order
+     * create a new order
+     * @param dto list of order items
+     * @return order detail
      */
     @PostMapping
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN})
     public ResponseEntity<OrderResponseDTO> createOrder(
-            @Valid @RequestBody List<OrderItem>dto) {
+            @Valid @RequestBody List<OrderItemEntity>dto) {
 
         log.info("Order creation request");
         OrderResponseDTO response = orderService.createOrder(dto);
@@ -41,6 +44,12 @@ public class OrdersController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * Get orders.
+     * Admin -gets all orders
+     * User -gets only their orders
+     * @return list of orders
+     */
     @GetMapping
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN})
     public ResponseEntity<List<OrderResponseDTO>> getOrders() {
@@ -48,7 +57,11 @@ public class OrdersController {
         return ResponseEntity.ok(orderService.getOrders());
     }
 
-
+    /**
+     * cacel order by id
+     * @param orderId id of order
+     * @return updated order after cancellation
+     */
     @PutMapping("/cancel/{orderId}")
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
     public ResponseEntity<OrderResponseDTO> cancelOrder(@PathVariable Long orderId) {

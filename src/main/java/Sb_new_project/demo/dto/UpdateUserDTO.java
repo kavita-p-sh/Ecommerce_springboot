@@ -11,7 +11,6 @@ public class UpdateUserDTO {
     @Pattern(regexp = RegexConstant.USERNAME, message = "Username must start with a letter and contain only letters, numbers, spaces, and underscore")
     private String username;
 
-    @Email(message = "Invalid email format")
     @Pattern(regexp = RegexConstant.EMAIL, message = "Email must be valid")
     private String email;
 

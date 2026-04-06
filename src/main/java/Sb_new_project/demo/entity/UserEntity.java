@@ -13,7 +13,7 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @Data
-public class User extends BaseEntity {
+public class UserEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,20 +29,19 @@ public class User extends BaseEntity {
 
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = RegexConstant.PHONE, message = "Invalid phone number")
+    @Column(nullable = false, unique = true)
     private String phoneNumber;
-
 
     @NotBlank(message = "Email cannot be blank")
     @Pattern(regexp = RegexConstant.EMAIL, message = "Email must be valid")
-    @Email(message = "Invalid email format")
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
     @ManyToOne
     @JoinColumn(name="role_id")
-    private Role role;
+    private RoleEntity role;
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
-    private List<Orders> orders;
+    private List<OrdersEntity> orders;
 }

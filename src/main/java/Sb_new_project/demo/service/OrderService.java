@@ -1,7 +1,7 @@
 package Sb_new_project.demo.service;
 
 import Sb_new_project.demo.dto.OrderResponseDTO;
-import Sb_new_project.demo.entity.OrderItem;
+import Sb_new_project.demo.entity.OrderItemEntity;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.List;
  */
 public interface OrderService {
 
-    OrderResponseDTO createOrder(List<OrderItem> items);
+    OrderResponseDTO createOrder(List<OrderItemEntity> items);
 
     List<OrderResponseDTO> getOrders();
     List<OrderResponseDTO> getOrdersByUser();

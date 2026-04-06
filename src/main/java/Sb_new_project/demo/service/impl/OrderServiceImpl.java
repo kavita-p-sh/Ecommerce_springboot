@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,13 +40,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     @CacheEvict(value = "orders", allEntries = true)
-    public OrderResponseDTO createOrder(List<OrderItem> request) {
+    public OrderResponseDTO createOrder(List<OrderItemEntity> request) {
         String userName = loggedInUserServiceImpl.getCurrentUser().getUsername();
 
         checkItems(request);
-        User user = getUser(userName);
-        OrderStatus status = getStatus();
-        Orders order = makeOrder(user, status, userName);
+        UserEntity user = getUser(userName);
+        OrderStatusEntity status = getStatus();
+        OrdersEntity order = makeOrder(user, status, userName);
         addTotals(request, order);
 
         order = orderRepository.save(order);
@@ -57,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
     /**
      * check items that item can not empty
      */
-    private void checkItems(List<OrderItem> items) {
+    private void checkItems(List<OrderItemEntity> items) {
         if (items == null || items.isEmpty()) {
             throw new BadRequestException(Constant.ORDER_ITEMS_CAN_NOT_EMPTY);
         }
@@ -69,7 +70,7 @@ public class OrderServiceImpl implements OrderService {
      * @param userName
      * @return
      */
-    private User getUser(String userName) {
+    private UserEntity getUser(String userName) {
         return userRepository.findByUsername(userName)
                 .orElseThrow(() -> new UserNotFoundException(Constant.USER_NOT_FOUND));
     }
@@ -80,8 +81,8 @@ public class OrderServiceImpl implements OrderService {
      *
      * @return
      */
-    private OrderStatus getStatus() {
-        Optional<OrderStatus> status =
+    private OrderStatusEntity getStatus() {
+        Optional<OrderStatusEntity> status =
                 orderStatusRepository.findByStatusName(OrderStatusEnum.PLACED.name());
         if (status.isPresent()) {
             return status.get();
@@ -98,8 +99,8 @@ public class OrderServiceImpl implements OrderService {
      * @param userName
      * @return
      */
-    private Orders makeOrder(User user, OrderStatus status, String userName) {
-        Orders order = new Orders();
+    private OrdersEntity makeOrder(UserEntity user, OrderStatusEntity status, String userName) {
+        OrdersEntity order = new OrdersEntity();
         order.setUser(user);
         order.setStatus(status);
         order.setCreatedBy(userName);
@@ -107,20 +108,20 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    private void addTotals(List<OrderItem> items, Orders order) {
-        double totalAmount = 0;
+    private void addTotals(List<OrderItemEntity> items, OrdersEntity order) {
+        BigDecimal totalAmount = BigDecimal.ZERO;
         int totalQty = 0;
 
-        for (OrderItem item : items) {
+        for (OrderItemEntity item : items) {
             if (item.getProduct() == null || item.getProduct().getProductId() == null) {
-                throw new BadRequestException("Product id required");
+                throw new BadRequestException(Constant.PRODUCT_NOT_FOUND);
             }
 
             if (item.getQuantity() == null || item.getQuantity() <= 0) {
-                throw new BadRequestException("Quantity must be greater than 0");
+                throw new BadRequestException(Constant.PRODUCT_QUANTITY_INVALID);
             }
 
-            Product product = productRepository.findById(item.getProduct().getProductId())
+            ProductEntity product = productRepository.findById(item.getProduct().getProductId())
                     .orElseThrow(() -> new UserNotFoundException(Constant.PRODUCT_NOT_FOUND));
 
             int quantity = item.getQuantity();
@@ -129,8 +130,14 @@ public class OrderServiceImpl implements OrderService {
                 throw new BadRequestException(Constant.OUT_OF_STOCK + product.getName());
             }
 
-            totalAmount = totalAmount + product.getPrice() * quantity;
+            BigDecimal itemTotal = product.getPrice()
+                    .multiply(BigDecimal.valueOf(quantity));
+
+            totalAmount = totalAmount.add(itemTotal);
+
             totalQty = totalQty + quantity;
+
+
         }
 
         order.setTotalAmount(totalAmount);
@@ -143,10 +150,10 @@ public class OrderServiceImpl implements OrderService {
      * @param order
      * @param userName
      */
-    private void saveItems(List<OrderItem> items, Orders order, String userName) {
+    private void saveItems(List<OrderItemEntity> items, OrdersEntity order, String userName) {
 
-        for (OrderItem item : items) {
-            Product product = productRepository.findById(item.getProduct().getProductId())
+        for (OrderItemEntity item : items) {
+            ProductEntity product = productRepository.findById(item.getProduct().getProductId())
                     .orElseThrow(() -> new UserNotFoundException(Constant.PRODUCT_NOT_FOUND));
 
             int quantity = item.getQuantity();
@@ -155,7 +162,7 @@ public class OrderServiceImpl implements OrderService {
             product.setUpdatedBy(userName);
             productRepository.save(product);
 
-            OrderItem orderItem = new OrderItem();
+            OrderItemEntity orderItem = new OrderItemEntity();
             orderItem.setOrder(order);
             orderItem.setProduct(product);
 
@@ -191,7 +198,7 @@ public class OrderServiceImpl implements OrderService {
 
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
 
-        User user = userRepository.findByUsername(username)
+        UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(Constant.USER_NOT_FOUND));
 
         return orderRepository.findByUser(user)
@@ -230,7 +237,7 @@ public class OrderServiceImpl implements OrderService {
 
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
 
-        Orders order = orderRepository.findById(orderId)
+        OrdersEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new UserNotFoundException(Constant.ORDER_NOT_FOUND));
 
         if (!order.getUser().getUsername().equals(username)) {
@@ -241,14 +248,14 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        OrderStatus cancelledStatus = orderStatusRepository
+        OrderStatusEntity cancelledStatus = orderStatusRepository
                 .findByStatusName(OrderStatusEnum.CANCELLED.name())
                 .orElseThrow(() -> new UserNotFoundException(Constant.STATUS_NOT_FOUND));
 
-        List<OrderItem> items = orderItemRepository.findByOrder(order);
+        List<OrderItemEntity> items = orderItemRepository.findByOrder(order);
 
-        for (OrderItem item : items) {
-            Product product = item.getProduct();
+        for (OrderItemEntity item : items) {
+            ProductEntity product = item.getProduct();
             product.setQuantity(product.getQuantity() + 1);
             product.setUpdatedBy(username);
 
@@ -271,7 +278,7 @@ public class OrderServiceImpl implements OrderService {
      * @param order
      * @return
      */
-    private OrderResponseDTO mapToDTO(Orders order) {
+    private OrderResponseDTO mapToDTO(OrdersEntity order) {
         OrderResponseDTO response = new OrderResponseDTO();
         response.setOrderId(order.getOrderId());
         response.setTotalAmount(order.getTotalAmount());

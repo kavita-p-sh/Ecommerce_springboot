@@ -1,39 +1,44 @@
-package Sb_new_project.demo.service;
+    package Sb_new_project.demo.service;
 
-import Sb_new_project.demo.dto.RegisterRequestDTO;
-import Sb_new_project.demo.dto.UpdateUserDTO;
-import Sb_new_project.demo.dto.UserResponseDTO;
-import Sb_new_project.demo.entity.User;
-import org.springframework.security.core.Authentication;
+    import Sb_new_project.demo.dto.RegisterRequestDTO;
+    import Sb_new_project.demo.dto.UpdateUserDTO;
+    import Sb_new_project.demo.dto.UserResponseDTO;
+    import Sb_new_project.demo.entity.UserEntity;
+    import org.springframework.security.core.Authentication;
 
-import java.util.List;
+    import java.util.List;
+    import java.util.Optional;
 
-/**
- * Service interface for managing user operations.
- * <p>
- * Provides methods for:
- * - User registration
- * - Fetching user details
- * - Updating user information
- * - Deleting users
- * </p>
- */
-public interface UserService {
+    /**
+     * Service interface for managing user operations.
+     * <p>
+     * Provides methods for:
+     * - User registration
+     * - Fetching user details
+     * - Updating user information
+     * - Deleting users
+     * </p>
+     */
+    public interface UserService {
 
 
-    User registerUser(RegisterRequestDTO dto);
+        UserEntity registerUser(RegisterRequestDTO dto);
 
-    List<UserResponseDTO> getUsers(String username);
+        List<UserResponseDTO> getUsers(Long userid,String username,String email);
 
-    List<UserResponseDTO> getAllUsers();
+        UserResponseDTO getUserById(Long userid);
 
-    UserResponseDTO getUserByUsername(String username);
+        UserResponseDTO getUserByEmail(String email);
 
-    UserResponseDTO getMyProfile(Authentication authentication);
+        UserResponseDTO getUserByUsername(String username);
 
-    UserResponseDTO updateUserByUsername(String username, UpdateUserDTO dto);
+        List<UserResponseDTO> getAllUsers();
 
-    UserResponseDTO updateMyProfile(Authentication authentication, UpdateUserDTO dto);
+        UserResponseDTO getMyProfile(Authentication authentication);
 
-    void deleteUserByUsername(String username);
-}
+        UserResponseDTO updateUserByUsername(String username, UpdateUserDTO dto);
+
+        UserResponseDTO updateMyProfile(Authentication authentication, UpdateUserDTO dto);
+
+        void deleteUserByUsername(String username);
+    }

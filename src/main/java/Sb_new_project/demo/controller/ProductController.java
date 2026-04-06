@@ -29,6 +29,11 @@ public class ProductController {
 
     private final ProductService productService;
 
+    /**
+     * create product
+     * @param dto request data for product creation
+     * @return
+     */
     @PostMapping
     @RolesAllowed(Constant.ROLE_ADMIN)
     public ResponseEntity<ProductResponseDTO> createProduct(
@@ -39,6 +44,11 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * get all products
+     * @return all product
+     */
+
     @GetMapping
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
     public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
@@ -46,6 +56,11 @@ public class ProductController {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
+    /**
+     * update product by name
+     * @param dto contains updated product data
+     * @return update product detail
+     */
     @PutMapping
     public ResponseEntity<ProductResponseDTO> updateProduct(@Valid @RequestBody ProductUpdateDTO dto) {
         log.info("Update product: {}", dto.getName());
@@ -53,6 +68,11 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Delete product by name
+     * @param name product name to delete
+     * @return success message
+     */
     @DeleteMapping("/{name}")
     @RolesAllowed(Constant.ROLE_ADMIN)
     public ResponseEntity<String> deleteProduct(@PathVariable String name) {

@@ -3,7 +3,7 @@ package Sb_new_project.demo.service.impl;
 import Sb_new_project.demo.dto.LoginRequestDTO;
 import Sb_new_project.demo.dto.RegisterRequestDTO;
 import Sb_new_project.demo.dto.UserResponseDTO;
-import Sb_new_project.demo.entity.User;
+import Sb_new_project.demo.entity.UserEntity;
 import Sb_new_project.demo.security.JwtUtil;
 import Sb_new_project.demo.service.AuthService;
 import Sb_new_project.demo.service.CustomUserDetailsService;
@@ -49,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
     public UserResponseDTO register(RegisterRequestDTO dto) {
 
         log.info("Register user: " + dto.getUsername());
-        User user = userService.registerUser(dto);
+        UserEntity user = userService.registerUser(dto);
 
         UserResponseDTO response = new UserResponseDTO();
         response.setUsername(user.getUsername());

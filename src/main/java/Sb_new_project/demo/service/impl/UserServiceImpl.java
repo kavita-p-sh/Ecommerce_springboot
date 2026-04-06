@@ -3,8 +3,8 @@ package Sb_new_project.demo.service.impl;
 import Sb_new_project.demo.dto.RegisterRequestDTO;
 import Sb_new_project.demo.dto.UpdateUserDTO;
 import Sb_new_project.demo.dto.UserResponseDTO;
-import Sb_new_project.demo.entity.Role;
-import Sb_new_project.demo.entity.User;
+import Sb_new_project.demo.entity.RoleEntity;
+import Sb_new_project.demo.entity.UserEntity;
 import Sb_new_project.demo.enums.RoleName;
 import Sb_new_project.demo.exception.BadRequestException;
 import Sb_new_project.demo.exception.UserNotFoundException;
@@ -19,6 +19,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -38,14 +39,14 @@ public class UserServiceImpl implements UserService {
     private final LoggedInUserServiceImpl loggedInUserServiceImpl;
 
 
-    private User createUser(RegisterRequestDTO dto, RoleName roleName) {
+    private UserEntity createUser(RegisterRequestDTO dto, RoleName roleName) {
         log.info("Register request for: {}", dto.getUsername());
 
         validateUserNotExists(dto);
 
-        Role role = getValidRole(roleName);
+        RoleEntity role = getValidRole(roleName);
 
-        User user = buildUser(dto, role);
+        UserEntity user = buildUser(dto, role);
 
         log.info("registered successfully");
         return userRepository.save(user);
@@ -66,9 +67,9 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private Role getValidRole(RoleName roleName) {
+    private RoleEntity getValidRole(RoleName roleName) {
         log.debug("Fetching role: {}", roleName);
-        Role role = roleRepository.findByRoleName(roleName);
+        RoleEntity role = roleRepository.findByRoleName(roleName);
 
         if (role == null) {
             throw new UserNotFoundException(Constant.ROLE_NOT_FOUND + roleName);
@@ -76,9 +77,9 @@ public class UserServiceImpl implements UserService {
         return role;
     }
 
-    private User buildUser(RegisterRequestDTO dto, Role role) {
+    private UserEntity buildUser(RegisterRequestDTO dto, RoleEntity role) {
 
-        User user = new User();
+        UserEntity user = new UserEntity();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail().trim());
         user.setPhoneNumber(dto.getPhoneNumber());
@@ -91,7 +92,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User registerUser(RegisterRequestDTO dto) {
+    public UserEntity registerUser(RegisterRequestDTO dto) {
 
         log.info("Register request received for username: {}", dto.getUsername());
 
@@ -116,20 +117,52 @@ public class UserServiceImpl implements UserService {
         );
 
         if (!allowedRoles.contains(requestedRole)) {
-            throw new RuntimeException("Invalid role");
+            throw new RuntimeException(Constant.ROLE_NOT_FOUND);
         }
 
         return requestedRole;
     }
     @Override
-    public List<UserResponseDTO> getUsers(String username) {
+    public List<UserResponseDTO> getUsers(Long userid, String username, String email) {
 
-        if (username != null && !username.isBlank()) {
+        if (userid != null) {
+            return List.of(getUserById(userid));
+        }
+
+        if (StringUtils.hasText(username)) {
             return List.of(getUserByUsername(username));
         }
+
+        if (StringUtils.hasText(email)) {
+            return List.of(getUserByEmail(email));
+        }
+
         return getAllUsers();
     }
 
+    @Override
+    public UserResponseDTO getUserById(Long userid) {
+        UserEntity user = userRepository.findById(userid)
+                .orElseThrow(() -> new RuntimeException(Constant.USER_NOT_FOUND + userid));
+
+        return mapToUserResponseDTO(user);
+    }
+
+    @Override
+    public UserResponseDTO getUserByUsername(String username) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException(Constant.USER_NOT_FOUND + username));
+
+        return mapToUserResponseDTO(user);
+    }
+
+    @Override
+    public UserResponseDTO getUserByEmail(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException(Constant.USER_NOT_FOUND + email));
+
+        return mapToUserResponseDTO(user);
+    }
 
     @Override
     @Transactional
@@ -138,7 +171,7 @@ public class UserServiceImpl implements UserService {
 
         log.info("Fetching all users from database");
 
-        List<User> users = userRepository.findAll();
+        List<UserEntity> users = userRepository.findAll();
 
         return users.stream()
                 .map(user -> mapToUserResponseDTO(user))
@@ -146,25 +179,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Cacheable(cacheNames = "user", key = "'allUsers'")
-    public UserResponseDTO getUserByUsername(String username)  {
-
-        log.info("Fetching user by username: {}", username);
-
-        User user=userRepository.findByUsername(username)
-                .orElseThrow(() ->
-                        new RuntimeException(Constant.USER_NOT_FOUND_WITH_USERNAME + username)
-                );
-
-        return mapToUserResponseDTO(user);
-
-    }
-
-    @Override
     public UserResponseDTO getMyProfile(Authentication authentication) {
         String username = authentication.getName();
 
-        User user = userRepository.findByUsername(username)
+        UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(Constant.USER_NOT_FOUND + username));
 
         return mapToUserResponseDTO(user);
@@ -178,7 +196,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO updateUserByUsername(String username, UpdateUserDTO dto) {
         log.info("Updating user with username: {}", username);
 
-        User existingUser = userRepository.findByUsername(username)
+        UserEntity existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(Constant.USER_NOT_FOUND + username));
 
         if (!StringUtils.isEmpty(dto.getEmail())) {
@@ -192,7 +210,7 @@ public class UserServiceImpl implements UserService {
             existingUser.setPhoneNumber(dto.getPhoneNumber());
         }
 
-        User updatedUser = userRepository.save(existingUser);
+        UserEntity updatedUser = userRepository.save(existingUser);
 
         log.info("User updated successfully: {}", username);
         return mapToUserResponseDTO(updatedUser);
@@ -207,7 +225,7 @@ public class UserServiceImpl implements UserService {
 
         log.info("Updating profile for user: {}", username);
 
-        User existingUser = userRepository.findByUsername(username)
+        UserEntity existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() ->
                         new UserNotFoundException(Constant.USER_NOT_FOUND + username));
 
@@ -222,7 +240,7 @@ public class UserServiceImpl implements UserService {
             existingUser.setPhoneNumber(dto.getPhoneNumber());
         }
 
-        User updatedUser = userRepository.save(existingUser);
+        UserEntity updatedUser = userRepository.save(existingUser);
 
         log.info("Profile updated successfully: {}", username);
 
@@ -237,7 +255,7 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException(Constant.ONLY_ADMIN_ALLOWED);
         }
 
-        User user = userRepository.findByUsername(username)
+        UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
                         new UserNotFoundException(Constant.USER_NOT_FOUND + username));
 
@@ -246,7 +264,7 @@ public class UserServiceImpl implements UserService {
         log.info(Constant.USER_DELETED_SUCCESS, username);
     }
 
-    private UserResponseDTO mapToUserResponseDTO(User user) {
+    private UserResponseDTO mapToUserResponseDTO(UserEntity user) {
         UserResponseDTO dto = new UserResponseDTO();
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());

@@ -1,9 +1,7 @@
 package Sb_new_project.demo.dto;
 
-import Sb_new_project.demo.entity.Role;
 import Sb_new_project.demo.enums.RoleName;
 import lombok.*;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
 

@@ -1,6 +1,6 @@
 package Sb_new_project.demo.service.impl;
 
-import Sb_new_project.demo.entity.User;
+import Sb_new_project.demo.entity.UserEntity;
 import Sb_new_project.demo.repository.UserRepository;
 import Sb_new_project.demo.service.CustomUserDetailsService;
 import Sb_new_project.demo.util.Constant;
@@ -24,7 +24,7 @@ public class CustomUserDetailsServiceImple implements CustomUserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         log.info("Fetching user by username", username);
-        User user = userRepository.findByUsername(username)
+        UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
                     log.error("User not found", username);
                     return new UsernameNotFoundException(Constant.USER_NOT_FOUND);

@@ -1,15 +1,11 @@
 package Sb_new_project.demo.controller;
 
-import Sb_new_project.demo.dto.RegisterRequestDTO;
 import Sb_new_project.demo.dto.UpdateUserDTO;
 import Sb_new_project.demo.dto.UserResponseDTO;
-import Sb_new_project.demo.entity.User;
 import Sb_new_project.demo.service.UserService;
 import Sb_new_project.demo.util.Constant;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -28,19 +24,30 @@ public class UserController {
 
     private final UserService userService;
 
+    /**
+     * Get users based on filters
+     * @param userid
+     * @param username
+     * @param email
+     * @return
+     */
+    @RolesAllowed({Constant.ROLE_ADMIN})
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getUsers(
-            @RequestParam(required = false) String username) {
+           @RequestParam(required = false) Long userid ,
+           @RequestParam(required = false) String username,
+           @RequestParam(required = false) String email) {
 
-        if (username != null && !username.isBlank()) {
-            return ResponseEntity.ok(
-                    List.of(userService.getUserByUsername(username))
-            );
-        }
-
-        return ResponseEntity.ok(userService.getAllUsers());
+        log.info("Fetching users with - userid: {}, username: {}, email: {}",
+                userid, username, email);
+         return ResponseEntity.ok(userService.getUsers(userid, username, email));
     }
 
+    /**
+     * Get profile of currently logged-in user
+     * @param authentication
+     * @return
+     */
     @RolesAllowed({Constant.ROLE_USER, Constant.ROLE_ADMIN, Constant.ROLE_MANAGER})
     @GetMapping("/profile")
     public ResponseEntity<UserResponseDTO> getMyProfile(Authentication authentication) {
@@ -48,13 +55,24 @@ public class UserController {
         return ResponseEntity.ok(userService.getMyProfile(authentication));
     }
 
-    @RolesAllowed(Constant.ROLE_ADMIN)
+    /**
+     * Update user details using username.
+     *
+     * @param dto contains updated user data
+     * @return updated user response
+     */
+    @RolesAllowed({Constant.ROLE_ADMIN,Constant.ROLE_USER})
     @PutMapping
     public ResponseEntity<UserResponseDTO> updateUser(@RequestBody UpdateUserDTO dto) {
         UserResponseDTO updatedUser = userService.updateUserByUsername(dto.getUsername(), dto);
         return ResponseEntity.ok(updatedUser);
     }
 
+    /**
+     * Delete user by username
+     * @param username
+     * @return
+     */
     @RolesAllowed(Constant.ROLE_ADMIN)
     @DeleteMapping("/{username}")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {

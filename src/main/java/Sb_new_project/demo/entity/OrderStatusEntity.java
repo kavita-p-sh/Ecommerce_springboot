@@ -9,7 +9,7 @@ import java.util.List;
 @Entity
 @Table(name = "order_status")
 @Data
-public class OrderStatus  {
+public class OrderStatusEntity  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,5 +21,5 @@ public class OrderStatus  {
 
     @OneToMany(mappedBy = "status")
     @JsonIgnore
-    private List<Orders> orders;
+    private List<OrdersEntity> orders;
 }

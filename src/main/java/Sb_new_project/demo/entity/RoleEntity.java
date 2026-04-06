@@ -3,8 +3,6 @@ package Sb_new_project.demo.entity;
 import Sb_new_project.demo.enums.RoleName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.ToString;
 
@@ -14,7 +12,7 @@ import java.util.List;
 @Table(name = "roles")
 @ToString(exclude = "users")
 @Data
-public class Role{
+public class RoleEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +24,6 @@ public class Role{
 
     @OneToMany(mappedBy="role")
     @JsonIgnore
-    private List<User> users;
+    private List<UserEntity> users;
 
 }

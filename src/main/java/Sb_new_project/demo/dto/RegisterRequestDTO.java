@@ -2,6 +2,8 @@ package Sb_new_project.demo.dto;
 
 import Sb_new_project.demo.enums.RoleName;
 import Sb_new_project.demo.util.RegexConstant;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -15,7 +17,6 @@ public class RegisterRequestDTO {
 
     @NotBlank(message = "Email required")
     @Pattern(regexp = RegexConstant.EMAIL, message = "Email must be valid")
-    @Email(message = "Invalid email")
     private String email;
 
 
@@ -28,6 +29,7 @@ public class RegisterRequestDTO {
     private String phoneNumber;
 
     @NotNull(message = "Role is required")
+    @Enumerated(EnumType.STRING)
     private RoleName role;
 
 }
