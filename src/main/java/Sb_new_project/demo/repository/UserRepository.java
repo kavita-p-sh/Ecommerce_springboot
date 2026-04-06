@@ -1,15 +1,17 @@
 package Sb_new_project.demo.repository;
 
-import Sb_new_project.demo.entity.User;
+import Sb_new_project.demo.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    Optional<User> findByUsername(String username);
+    Optional<UserEntity> findByUsername(String username);
 
-    boolean existsByRole_RoleName(String roleName);
+    Optional<UserEntity> findByEmail(String email);
+
+    Optional<UserEntity> findByPhoneNumber(String phoneNumber);
 
     boolean existsByUsername(String username);
 

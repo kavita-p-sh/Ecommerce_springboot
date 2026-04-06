@@ -33,7 +33,7 @@ public class LoggedInUserServiceImpl implements LoggedInUserService {
                 .map(a -> a.getAuthority())
                 .toList();
 
-        return new LoggedInUserDTO(username, roles);
+        return new LoggedInUserDTO(username, roles.toString());
     }
 
     @Override
@@ -43,7 +43,6 @@ public class LoggedInUserServiceImpl implements LoggedInUserService {
 
     @Override
     public boolean isAdmin() {
-
         Authentication auth = getAuthentication();
 
         return auth.getAuthorities()

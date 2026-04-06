@@ -1,13 +1,24 @@
 package Sb_new_project.demo.dto;
 
-import lombok.Data;
+import Sb_new_project.demo.enums.RoleName;
+import lombok.*;
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
-public class UserResponseDTO {
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class UserResponseDTO implements Serializable {
 
-    private Long userId;
     private String username;
     private String email;
-    private String role;
+    private RoleName role;
+    private String phoneNumber;
+    private String createdBy;
+    private String updatedBy;
+    private LocalDateTime createdTimestamp;
+    private LocalDateTime updatedTimestamp;
 
 }

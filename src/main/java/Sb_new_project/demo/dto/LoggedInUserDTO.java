@@ -9,10 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class LoggedInUserDTO {
     private String username;
-   private List<String> roles;
-
-
+    private String role;
 }

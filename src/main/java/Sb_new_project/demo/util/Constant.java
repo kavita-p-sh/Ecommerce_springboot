@@ -6,7 +6,12 @@ public class Constant {
     public static final String ROLE_USER = "ROLE_USER";
     public static final String SYSTEM = "SYSTEM";
     public static final String ADMIN = "Admin";
+    public static final String ROLE_REQUIRED = "Role is required";
+    public static final String ADMIN_NOT_ALLOWED = "Not authorized to register as ADMIN";
 
+
+    public static final String REGISTER_SUCCESS = "User registered successfully";
+    public static final String LOGOUT_SUCCESS = "Logout successful (delete token on client side)";
 
     public static final String USER_NOT_FOUND = "User Not Found";
     public static final String USER_NOT_FOUND_WITH_USERNAME = "User not found with username: ";
@@ -39,6 +44,7 @@ public class Constant {
     public static final String STATUS_CANCELLED = "CANCELLED";
     public static final String STATUS_DELIVERED = "DELIVERED";
     public static final String STATUS_NOT_FOUND = "Status not found";
+    public static final String NOT_ALLOWED_TO_CANCEL_ORDER = "You are not allowed to cancel this order";
 
 
     public static final String OUT_OF_STOCK = "Product out of stock: ";
@@ -46,11 +52,13 @@ public class Constant {
 
 
     public static final String INVALID_CREDENTIALS = "Invalid username or password";
-    public static final String ONLY_ADMIN_ALLOWED = "Only Admin Can Perform This Operation";
+    public static final String ONLY_ADMIN_ALLOWED = "Only Admin Can Delete";
 
 
     public static final String RESOURCE_NOT_FOUND = "Requested resource not found";
     public static final String BAD_REQUEST = "Invalid request";
     public static final String GENERIC_ERROR = "Something went wrong, please try again later";
     public static final String ROLE_NOT_FOUND = "Role not found";
+    public static final String ROLE_MANAGER = "ROLE_MANAGER";
+    public static final String INVALID_ROLE = "Invalid Role";
 }

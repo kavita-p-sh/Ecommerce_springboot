@@ -3,21 +3,27 @@ package Sb_new_project.demo.service;
 import Sb_new_project.demo.dto.ProductRequestDTO;
 import Sb_new_project.demo.dto.ProductResponseDTO;
 import Sb_new_project.demo.dto.ProductUpdateDTO;
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
+/**
+ * Service interface for managing product operations.
+ * Provides methods for:
+ * - Creating products
+ * - Fetching products
+ * - Updating products
+ * - Deleting products
+ */
 public interface ProductService {
-    @Transactional
+
     ProductResponseDTO addProduct(ProductRequestDTO requestDTO);
 
     List<ProductResponseDTO> getAllProducts();
 
-    ProductResponseDTO getProductByName(String productName);
+    List<ProductResponseDTO> getProducts(ProductResponseDTO filterDTO);
 
-    @Transactional
-    ProductResponseDTO updateProduct(Long id, ProductUpdateDTO dto);
+    ProductResponseDTO updateProductByName(ProductUpdateDTO dto);
 
-    @Transactional
-    void deleteProductById(Long id);
+    void deleteProductByName(String name);
 }

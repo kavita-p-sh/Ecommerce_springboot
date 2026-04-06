@@ -1,27 +1,30 @@
 package Sb_new_project.demo.dto;
 
+import Sb_new_project.demo.util.RegexConstant;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+
+import java.math.BigDecimal;
+
 
 @Data
 public class ProductRequestDTO {
 
-
-
-        @NotBlank(message = "Product name cannot be empty")
-        @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+        @NotBlank(message ="{product.name.required}")
+        @Pattern(regexp = RegexConstant.PRODUCT_NAME, message = "{product.name.invalid}")
         private String name;
 
-        @Size(max = 500, message = "Description too long")
+        @NotBlank(message = "{product.description.required}")
+        @Size( max = 500, message = "{product.description.size}")
         private String description;
 
-        @NotNull(message = "Price is required")
-        @Positive(message = "Price must be greater than 0")
-        @Digits(integer = 10, fraction = 2, message = "Invalid price format")
-        private Double price;
+        @NotNull(message = "{product.price.required}")
+        @DecimalMin(value = "0.01", message = "{product.price.min}")
+        @Digits(integer = 10, fraction = 2, message = "{product.price.format}")
+        private BigDecimal price;
 
-        @NotNull(message = "Quantity is required")
-        @Min(value = 0, message = "Quantity cannot be negative")
+        @NotNull(message = "{product.quantity.required}")
+        @Min(value = 0, message = "{product.quantity.required}")
         private Integer quantity;
 
   }
