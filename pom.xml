@@ -12,12 +12,12 @@
 		<relativePath/>
 	</parent>
 
-	<groupId>Sb_new_project</groupId>
-	<artifactId>demo</artifactId>
+	<groupId>com.ecommerce</groupId>
+	<artifactId>ecommerce-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<name>demo</name>
-	<description>Demo Spring Boot Project</description>
+	<name>ecommerce-api</name>
+	<description>Ecommerce Spring Boot API</description>
 
 	<properties>
 		<java.version>20</java.version>
@@ -57,9 +57,6 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-
-
 
 		<dependency>
 			<groupId>com.mysql</groupId>
