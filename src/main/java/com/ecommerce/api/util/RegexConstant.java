@@ -7,7 +7,7 @@ package com.ecommerce.api.util;
 public class RegexConstant {
     private RegexConstant(){}
 
-    public static final String USERNAME = "^[A-Za-z][A-Za-z0-9_ ]{2,49}$";
+    public static final String USERNAME = "^[A-Za-z][A-Za-z0-9_]{2,49}$";
 
     public static final String EMAIL = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
 

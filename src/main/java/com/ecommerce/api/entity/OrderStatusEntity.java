@@ -1,7 +1,6 @@
 package com.ecommerce.api.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.List;
@@ -18,11 +17,10 @@ public class OrderStatusEntity  {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long statusId;
 
-    @NotBlank(message = "{order.status.required}")
     @Column(nullable = false, unique = true)
     private String statusName;
 
     @OneToMany(mappedBy = "status")
     @JsonIgnore
-    private List<OrdersEntity> orders;
+    private List<OrderEntity> orders;
 }

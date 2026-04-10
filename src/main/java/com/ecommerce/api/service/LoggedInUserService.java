@@ -28,4 +28,6 @@ public interface LoggedInUserService {
      * @return true if admin, else false
      */
     boolean isAdmin();
+
+    String getRole();
 }

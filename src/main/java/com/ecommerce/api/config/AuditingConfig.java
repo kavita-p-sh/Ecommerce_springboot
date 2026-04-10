@@ -1,5 +1,6 @@
 package com.ecommerce.api.config;
 
+import com.ecommerce.api.audit.AuditorAwareImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
@@ -15,6 +16,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class AuditingConfig {
 
     /**
+     *
      * Provides current auditor (current-logged in user).
      *
      * @return AuditorAware implementation

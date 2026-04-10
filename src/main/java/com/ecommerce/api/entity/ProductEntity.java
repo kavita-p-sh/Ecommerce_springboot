@@ -20,12 +20,9 @@ public class ProductEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productId;
 
-    @NotBlank(message = "{product.name.required}")
     @Column(nullable = false, length = 150,unique=true)
-    @Pattern(regexp = RegexConstant.PRODUCT_NAME, message = "{product.name.invalid}")
     private String name;
 
-    @NotBlank(message = "{product.description.required}")
     @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 

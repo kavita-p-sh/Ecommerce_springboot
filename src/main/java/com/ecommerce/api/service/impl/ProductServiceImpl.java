@@ -5,16 +5,17 @@ import com.ecommerce.api.dto.ProductRequestDTO;
 import com.ecommerce.api.dto.ProductResponseDTO;
 import com.ecommerce.api.dto.ProductUpdateDTO;
 import com.ecommerce.api.entity.ProductEntity;
+import com.ecommerce.api.exception.BadRequestException;
 import com.ecommerce.api.exception.ResourceNotFoundException;
 import com.ecommerce.api.repository.ProductRepository;
 import com.ecommerce.api.service.ProductService;
 import com.ecommerce.api.util.AppConstants;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
@@ -41,10 +42,10 @@ public class ProductServiceImpl implements ProductService {
     @CacheEvict(value = "products", allEntries = true)
     public ProductResponseDTO addProduct(ProductRequestDTO requestDTO) {
 
-        log.info("Adding Product:" + requestDTO.getName());
+        log.info("Adding Product:{} " , requestDTO.getName());
 
         if (productRepository.existsByName(requestDTO.getName())) {
-            throw new IllegalArgumentException(AppConstants.PRODUCT_ALREADY_EXISTS + requestDTO.getName());
+            throw new BadRequestException(AppConstants.PRODUCT_ALREADY_EXISTS + requestDTO.getName());
         }
 
         ProductEntity product = new ProductEntity();
@@ -68,7 +69,7 @@ public class ProductServiceImpl implements ProductService {
      * @return list of matching products
      */
     @Override
-    @Cacheable(value = "products")
+    @Transactional(readOnly = true)
     public List<ProductResponseDTO> getProducts(String name, BigDecimal price, Integer quantity) {
 
         log.info("Fetching products with filters: name={}, price={}, quantity={}", name, price, quantity);
@@ -76,7 +77,7 @@ public class ProductServiceImpl implements ProductService {
         if (StringUtils.hasText(name)) {
             log.info("Fetching product by name: {}", name);
             ProductEntity product = productRepository.findByName(name)
-                    .orElseThrow(() -> new RuntimeException(AppConstants.PRODUCT_NOT_FOUND + name));
+                    .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PRODUCT_NOT_FOUND + name));
             return List.of(mapToResponse(product));
         }
 
@@ -106,7 +107,7 @@ public class ProductServiceImpl implements ProductService {
      * @return list of all products
      */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     @Cacheable(value = "products", key = "'allProducts'")
     public List<ProductResponseDTO> getAllProducts() {
 
@@ -137,17 +138,6 @@ public class ProductServiceImpl implements ProductService {
         ProductEntity product = productRepository.findByName(updatedto.getName())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(AppConstants.PRODUCT_NOT_FOUND + updatedto.getName()));
-
-
-        if (StringUtils.hasText(updatedto.getName())) {
-
-            if (!product.getName().equals(updatedto.getName())
-                    && productRepository.existsByName(updatedto.getName())) {
-                throw new IllegalArgumentException(AppConstants.PRODUCT_ALREADY_EXISTS + updatedto.getName());
-            }
-
-            product.setName(updatedto.getName().trim());
-        }
 
         if (StringUtils.hasText(updatedto.getDescription())) {
             product.setDescription(updatedto.getDescription().trim());

@@ -43,7 +43,6 @@ public class JwtUtil {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .claim("role", role)
-                .claim("password", userDetails.getPassword())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .encryptWith(secretKey, Jwts.KEY.DIRECT, Jwts.ENC.A256GCM)
@@ -58,13 +57,6 @@ public class JwtUtil {
         return claims.getSubject();
     }
 
-    /**
-     * Extracts password from token.
-     */
-    public String extractPassword(String token) {
-        Claims claims = extractClaims(token);
-        return claims.get("password", String.class);
-    }
 
     /**
      * Extract role from token.

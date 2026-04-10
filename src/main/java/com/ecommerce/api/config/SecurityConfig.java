@@ -1,16 +1,13 @@
 package com.ecommerce.api.config;
 
 import com.ecommerce.api.security.JwtAuthenticationFilter;
-import com.ecommerce.api.util.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -38,14 +35,6 @@ public class SecurityConfig {
     }
 
     /**
-     * Removes ROLE_ prefix from authorities.
-     */
-    @Bean
-    public GrantedAuthorityDefaults grantedAuthorityDefaults() {
-        return new GrantedAuthorityDefaults("");
-    }
-
-    /**
      * Provides authentication manager.
      */
     @Bean
@@ -60,6 +49,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+                // CSRF disabled — stateless JWT authentication; no session-based state that CSRF could exploit
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session -> session
@@ -67,30 +57,7 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-
-                        .requestMatchers("/auth/register").permitAll()
-                        .requestMatchers("/auth/login").permitAll()
-
-                        .requestMatchers(HttpMethod.GET, "/api/products").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/products/name/*").permitAll()
-
-                        .requestMatchers(HttpMethod.POST, "/api/products").hasAuthority(AppConstants.ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.PUT, "/api/products").hasAuthority(AppConstants.ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.DELETE, "/api/products/*").hasAuthority(AppConstants.ROLE_ADMIN)
-
-                        .requestMatchers(HttpMethod.GET, "/api/users/profile").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
-
-                        .requestMatchers(HttpMethod.GET, "/api/users").hasAuthority(AppConstants.ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.GET, "/api/users/*").hasAuthority(AppConstants.ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.PUT, "/api/users/*").hasAuthority(AppConstants.ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/*").hasAuthority(AppConstants.ROLE_ADMIN)
-
-                        .requestMatchers(HttpMethod.POST, "/api/orders").hasAnyAuthority(AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.GET, "/api/orders").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/orders/*").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/orders/cancel/*").authenticated()
-
+                        .requestMatchers("/auth/register", "/auth/login").permitAll()
                         .anyRequest().authenticated()
                 )
 

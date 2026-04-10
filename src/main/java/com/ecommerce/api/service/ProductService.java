@@ -18,39 +18,41 @@ import java.util.List;
 public interface ProductService {
 
     /**
-     * add new product
-     * @param requestDTO
-     * @return
+     * Adds a new product.
+     *
+     * @param requestDTO the product data to be created
+     * @return the created product details
      */
     ProductResponseDTO addProduct(ProductRequestDTO requestDTO);
 
-
     /**
-     * fetch all products
-     * @return
+     * Fetches all products.
+     *
+     * @return list of all products
      */
     List<ProductResponseDTO> getAllProducts();
 
     /**
-     * fetch products based on filters like name, price or quantity.
-     * @param name product name
-     * @param price product price
-     * @param quantity product quantity
-     * @return
+     * Fetches products based on filters like name, price, or quantity.
+     *
+     * @param name the product name to filter (optional)
+     * @param price the product price to filter (optional)
+     * @param quantity the product quantity to filter (optional)
+     * @return list of filtered products
      */
     List<ProductResponseDTO> getProducts(String name, BigDecimal price, Integer quantity);
 
     /**
-     * Updates product details using name.
+     * Updates product details using product name.
      *
-     * @param dto update data
+     * @param dto the product update data
      * @return updated product details
      */
     ProductResponseDTO updateProductByName(ProductUpdateDTO dto);
     /**
-     * Deletes product by name.
+     * Deletes a product by name.
      *
-     * @param name product name
+     * @param name the product name to delete
      */
     void deleteProductByName(String name);
 }

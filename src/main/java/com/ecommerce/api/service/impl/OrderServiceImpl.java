@@ -5,7 +5,7 @@ import com.ecommerce.api.dto.OrderItemRequestDTO;
 import com.ecommerce.api.dto.OrderItemResponseDTO;
 import com.ecommerce.api.dto.OrderRequestDTO;
 import com.ecommerce.api.dto.OrderResponseDTO;
-import com.ecommerce.api.enums.OrderStatusEnum;
+import com.ecommerce.api.enums.OrderStatus;
 import com.ecommerce.api.exception.BadRequestException;
 import com.ecommerce.api.exception.ResourceNotFoundException;
 import com.ecommerce.api.service.OrderService;
@@ -48,22 +48,19 @@ public class OrderServiceImpl implements OrderService {
     @CacheEvict(value = {"orders", "ordersByUser"}, allEntries = true)
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
-
-        validateOrderItems(request.getItems());
-
         UserEntity user = getUser(username);
-        OrderStatusEntity placedStatus = getOrderStatus(OrderStatusEnum.PLACED.name());
+        OrderStatusEntity placedStatus = getOrderStatus(OrderStatus.PLACED.name());
 
         Map<Long, ProductEntity> productMap = getProductMap(request.getItems());
 
-        OrdersEntity order = new OrdersEntity();
+        OrderEntity order = new OrderEntity();
         order.setUser(user);
         order.setStatus(placedStatus);
         order.setCreatedBy(username);
 
         setOrderTotals(request.getItems(), productMap, order);
 
-        OrdersEntity savedOrder = orderRepository.save(order);
+        OrderEntity savedOrder = orderRepository.save(order);
 
         List<OrderItemEntity> savedItems = saveOrderItems(request.getItems(), savedOrder, productMap, username);
 
@@ -74,7 +71,7 @@ public class OrderServiceImpl implements OrderService {
      */
     private void setOrderTotals(List<OrderItemRequestDTO> items,
                                 Map<Long, ProductEntity> productMap,
-                                OrdersEntity order) {
+                                OrderEntity order) {
 
         BigDecimal totalAmount = BigDecimal.ZERO;
         int totalQuantity = 0;
@@ -105,7 +102,7 @@ public class OrderServiceImpl implements OrderService {
      * Saves order items and updates product stock.
      */
     private List<OrderItemEntity> saveOrderItems(List<OrderItemRequestDTO> items,
-                                                 OrdersEntity order,
+                                                 OrderEntity order,
                                                  Map<Long, ProductEntity> productMap,
                                                  String username) {
 
@@ -128,29 +125,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * Validates order items.
-     * Checks for null values and invalid quantity.
-     */
-    private void validateOrderItems(List<OrderItemRequestDTO> items) {
-        if (items == null || items.isEmpty()) {
-            throw new BadRequestException(AppConstants.ORDER_ITEMS_CAN_NOT_EMPTY);
-        }
-
-        for (OrderItemRequestDTO item : items) {
-            if (item.getProductId() == null) {
-                throw new BadRequestException(AppConstants.PRODUCT_NOT_FOUND);
-            }
-
-            if (item.getQuantity() == null || item.getQuantity() <= 0) {
-                throw new BadRequestException(AppConstants.PRODUCT_QUANTITY_INVALID);
-            }
-        }
-    }
-
-    /**
      * Converts Order entity to DTO.
      */
-    private OrderResponseDTO mapToDTO(OrdersEntity order) {
+    private OrderResponseDTO mapToDTO(OrderEntity order) {
         List<OrderItemEntity> items = orderItemRepository.findByOrder(order);
         return mapToDTO(order, items);
     }
@@ -158,14 +135,18 @@ public class OrderServiceImpl implements OrderService {
     /**
      * Converts Order + Items into response DTO.
      */
-    private OrderResponseDTO mapToDTO(OrdersEntity order, List<OrderItemEntity> items) {
+    private OrderResponseDTO mapToDTO(OrderEntity order, List<OrderItemEntity> items) {
         OrderResponseDTO response = new OrderResponseDTO();
+        response.setOrderId(order.getOrderId());
         response.setTotalAmount(order.getTotalAmount());
         response.setTotalQuantity(order.getTotalQuantity());
         response.setStatus(order.getStatus().getStatusName());
         response.setCreatedBy(order.getCreatedBy());
-        response.setCreatedTimeStamp(order.getCreatedTimeStamp());
-        response.setUpdatedTimeStamp(order.getUpdatedTimeStamp());
+        response.setCreatedTimestamp(order.getCreatedTimestamp());
+        response.setUpdatedTimestamp(order.getUpdatedTimestamp());
+
+        response.setItems(mapOrderItemsToDTO(items));
+
         return response;
     }
 
@@ -191,16 +172,16 @@ public class OrderServiceImpl implements OrderService {
      *
      * @param status filter by order status
      * @param createdBy filter by username
-     * @param totalAmount filter by total amount
-     * @param totalQuantity filter by quantity
+     * @param minAmount filter by total amount
+     * @param minQuantity filter by quantity
      * @return list of filtered orders
      */
     @Override
     @Transactional(readOnly = true)
-    public List<OrderResponseDTO> getOrders(String status, String createdBy, BigDecimal totalAmount, Integer totalQuantity) {
+    public List<OrderResponseDTO> getOrders(String status, String createdBy, BigDecimal minAmount, BigDecimal maxAmount, Integer minQuantity) {
 
-        log.info("Fetching orders with filters - status: {}, createdBy: {}, totalAmount: {}, totalQuantity: {}",
-                status, createdBy, totalAmount, totalQuantity);
+        log.info("Fetching orders with filters - status: {}, createdBy: {}, minAmount: {}, maxAmount: {}, minQuantity: {}",
+                status, createdBy, minAmount, maxAmount, minQuantity);
 
         if (status != null && !status.isBlank()) {
             return orderRepository.findByStatus_StatusName(status)
@@ -216,22 +197,30 @@ public class OrderServiceImpl implements OrderService {
                     .toList();
         }
 
-        if (totalAmount != null) {
-            return orderRepository.findByTotalAmount(totalAmount)
+        if (minAmount != null && maxAmount != null) {
+            return orderRepository.findByTotalAmountBetween(minAmount, maxAmount)
                     .stream()
                     .map(this::mapToDTO)
                     .toList();
         }
 
-        if (totalQuantity != null) {
-            return orderRepository.findByTotalQuantity(totalQuantity)
+        if (minQuantity != null) {
+            return orderRepository.findByTotalQuantityGreaterThanEqual(minQuantity)
                     .stream()
                     .map(this::mapToDTO)
                     .toList();
         }
 
-        return getAllOrders();
+        String username = loggedInUserServiceImpl.getUsername();
+        String role = loggedInUserServiceImpl.getRole();
+
+        if (AppConstants.ROLE_ADMIN.equals(role) || AppConstants.ROLE_MANAGER.equals(role)) {
+            return getAllOrders();
+        }
+
+        return getOrdersByUser();
     }
+
     /**
      * Fetch user by username.
      */
@@ -295,10 +284,13 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "ordersByUser", key = "#root.methodName + '_' + T(java.util.Objects).hash(#root.target.loggedInUserServiceImpl.getCurrentUser().getUsername())")
     public List<OrderResponseDTO> getOrdersByUser() {
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
+        return getOrdersByUsername(username);
+    }
 
+    @Cacheable(value = "ordersByUser", key = "#username")
+    public List<OrderResponseDTO> getOrdersByUsername(String username) {
         UserEntity user = getUser(username);
 
         return orderRepository.findByUser(user)
@@ -321,23 +313,25 @@ public class OrderServiceImpl implements OrderService {
     @CacheEvict(value = {"orders", "ordersByUser"}, allEntries = true)
     public OrderResponseDTO cancelOrder(Long orderId) {
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
+        boolean isAdmin = loggedInUserServiceImpl.isAdmin();
 
-        OrdersEntity order = orderRepository.findById(orderId)
+
+        OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException(AppConstants.ORDER_NOT_FOUND));
 
-        if (!order.getUser().getUsername().equals(username)) {
+        if (!isAdmin && !order.getUser().getUsername().equals(username)) {
             throw new BadRequestException(AppConstants.NOT_ALLOWED_TO_CANCEL_ORDER);
         }
 
-        if (OrderStatusEnum.DELIVERED.name().equals(order.getStatus().getStatusName())) {
+        if (OrderStatus.DELIVERED.name().equals(order.getStatus().getStatusName())) {
             throw new BadRequestException(AppConstants.CANNOT_CANCEL);
         }
 
-        if (OrderStatusEnum.CANCELLED.name().equals(order.getStatus().getStatusName())) {
+        if (OrderStatus.CANCELLED.name().equals(order.getStatus().getStatusName())) {
             throw new BadRequestException("Order is already cancelled");
         }
 
-        OrderStatusEntity cancelledStatus = getOrderStatus(OrderStatusEnum.CANCELLED.name());
+        OrderStatusEntity cancelledStatus = getOrderStatus(OrderStatus.CANCELLED.name());
 
         List<OrderItemEntity> items = orderItemRepository.findByOrder(order);
 
@@ -351,7 +345,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(cancelledStatus);
         order.setUpdatedBy(username);
 
-        OrdersEntity updatedOrder = orderRepository.save(order);
+        OrderEntity updatedOrder = orderRepository.save(order);
 
         log.info("Order cancelled successfully. Order id: {}, user: {}", orderId, username);
 

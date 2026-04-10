@@ -21,11 +21,6 @@ public interface UserService {
     UserEntity registerUser(RegisterRequestDTO dto);
 
     /**
-     * Converts UserEntity to UserResponseDTO.
-     */
-    UserResponseDTO mapToUserResponseDTO(UserEntity user);
-
-    /**
      * Fetches users based on username, email, or phone.
      */
     List<UserResponseDTO> getUsers(String username, String email, String phoneNumber);

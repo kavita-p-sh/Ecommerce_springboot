@@ -25,7 +25,7 @@ public class OrderItemEntity  {
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "order_id", nullable = false)
-    private OrdersEntity order;
+    private OrderEntity order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
