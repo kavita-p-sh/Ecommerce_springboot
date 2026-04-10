@@ -1,5 +1,6 @@
 package com.ecommerce.api.service.impl;
 
+import com.ecommerce.api.exception.UnauthorizedException;
 import org.springframework.security.core.GrantedAuthority;
 import com.ecommerce.api.dto.LoggedInUserDTO;
 import com.ecommerce.api.service.LoggedInUserService;
@@ -22,7 +23,7 @@ public class LoggedInUserServiceImpl implements LoggedInUserService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth == null || !auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
-            throw new RuntimeException(AppConstants.USER_UNAUTHENTICATED);
+            throw new UnauthorizedException(AppConstants.USER_UNAUTHENTICATED);
         }
         return auth;
     }
@@ -43,8 +44,12 @@ public class LoggedInUserServiceImpl implements LoggedInUserService {
         List<String> roles = auth.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
-
                 .toList();
+
+        if (roles.isEmpty()) {
+            throw new RuntimeException(AppConstants.ROLE_NOT_ASSIGNED);
+        }
+
         String role = roles.get(0);
 
         return new LoggedInUserDTO(username, role);
@@ -74,4 +79,11 @@ public class LoggedInUserServiceImpl implements LoggedInUserService {
                 .stream()
                 .anyMatch(role -> role.getAuthority().equals(AppConstants.ROLE_ADMIN));
     }
+
+    @Override
+    public String getRole() {
+        return getCurrentUser().getRole();
+    }
+
+
 }

@@ -5,16 +5,20 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class OrderResponseDTO implements Serializable {
 
+    private Long orderId;
     private BigDecimal totalAmount;
     private Integer totalQuantity;
     private String status;
-    private LocalDateTime createdTimeStamp;
+    private LocalDateTime createdTimestamp;
     private String createdBy;
     private String updatedBy;
-    private LocalDateTime updatedTimeStamp;
+    private LocalDateTime updatedTimestamp;
+
+    private List<OrderItemResponseDTO> items;
 
 }

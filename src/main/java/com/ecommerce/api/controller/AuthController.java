@@ -9,6 +9,7 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,8 +37,7 @@ public class AuthController {
 
         log.info("User registered successfully: {}", response.getUsername());
 
-        return ResponseEntity.ok(response);
-
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**

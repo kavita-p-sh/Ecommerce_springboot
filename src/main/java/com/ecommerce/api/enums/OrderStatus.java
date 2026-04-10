@@ -1,6 +1,6 @@
 package com.ecommerce.api.enums;
 
-public enum OrderStatusEnum {
+public enum OrderStatus {
     PLACED,
     DELIVERED,
     CANCELLED

@@ -27,20 +27,22 @@ public interface OrderService {
     OrderResponseDTO createOrder(OrderRequestDTO request);
 
     /**
-     * Fetch orders based on filters like status, user, amount or quantity.
-     * @param status order
-     * @param createdBy user who create order
-     * @param totalAmount totalamount  total order amount
-     * @param totalQuantity totalQuantity total quantity
-     * @return list of orders
+     * Fetch orders based on optional filters.
+     *
+     * @param status order status
+     * @param createdBy user who created the order
+     * @param minAmount minimum total amount
+     * @param maxAmount maximum total amount
+     * @param minQuantity minimum total quantity
+     * @return list of filtered orders
      */
     List<OrderResponseDTO> getOrders(String status,
                                      String createdBy,
-                                     BigDecimal totalAmount,
-                                     Integer totalQuantity);
-
+                                     BigDecimal minAmount,
+                                     BigDecimal maxAmount,
+                                     Integer minQuantity);
     /**
-     * fetach all orders.
+     * fetch all orders.
      * @return list of orders
      */
     List<OrderResponseDTO> getAllOrders();

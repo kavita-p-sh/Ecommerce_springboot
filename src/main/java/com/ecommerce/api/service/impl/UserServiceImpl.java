@@ -8,6 +8,7 @@ import com.ecommerce.api.entity.UserEntity;
 import com.ecommerce.api.enums.RoleName;
 import com.ecommerce.api.exception.BadRequestException;
 import com.ecommerce.api.exception.ResourceNotFoundException;
+import com.ecommerce.api.mapper.UserMapper;
 import com.ecommerce.api.repository.RoleRepository;
 import com.ecommerce.api.repository.UserRepository;
 import com.ecommerce.api.service.UserService;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final LoggedInUserServiceImpl loggedInUserServiceImpl;
+    private final UserMapper userMapper;
 
 
     /**
@@ -54,11 +57,12 @@ public class UserServiceImpl implements UserService {
     /**
      * Creates and saves a new user.
      *
-     * @param dto user data
+     * @param dto      user data
      * @param roleName user role
      * @return saved user
      */
-    private UserEntity createUser(RegisterRequestDTO dto, RoleName roleName) {
+
+    public UserEntity createUser(RegisterRequestDTO dto, RoleName roleName) {
         validateUserNotExists(dto);
 
         RoleEntity role = getValidRole(roleName);
@@ -72,6 +76,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Checks if user already exists.
+     *
      * @param dto
      */
     private void validateUserNotExists(RegisterRequestDTO dto) {
@@ -103,7 +108,7 @@ public class UserServiceImpl implements UserService {
     /**
      * Creates new user object.
      *
-     * @param dto user data
+     * @param dto  user data
      * @param role role entity
      * @return user entity
      */
@@ -116,7 +121,6 @@ public class UserServiceImpl implements UserService {
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRole(role);
-
 
 
         log.debug("User object created successfully for username: {}", dto.getUsername());
@@ -134,49 +138,40 @@ public class UserServiceImpl implements UserService {
 
         log.info("Resolving role for request: {}", requestedRole);
 
-        if (requestedRole == null || requestedRole == RoleName.ROLE_USER) {
-            return RoleName.ROLE_USER;
+        if (requestedRole == null || requestedRole == RoleName.USER) {
+            return RoleName.USER;
         }
 
-        boolean adminExists = userRepository.existsByRole_RoleName(RoleName.ROLE_ADMIN);
+        boolean adminExists = userRepository.existsByRole_RoleName(RoleName.ADMIN);
 
         if (!adminExists) {
             log.warn("No admin found in system. Allow first admin creation.");
             return requestedRole;
         }
 
-        try {
-            String loggedInUsername = loggedInUserServiceImpl.getUsername();
-            log.info("Logged-in user has role assignment: {}", loggedInUsername);
+        String loggedInUsername = loggedInUserServiceImpl.getUsername();
+        log.info("Logged-in user has role assignment request: {}", loggedInUsername);
 
-            UserEntity loggedInUser = userRepository.findByUsername(loggedInUsername)
-                    .orElseThrow(() -> {
-                        log.error("Logged-in user not found in DB: {}", loggedInUsername);
+        UserEntity loggedInUser = userRepository.findByUsername(loggedInUsername)
+                .orElseThrow(() -> {
+                    log.error("Logged-in user not found in DB: {}", loggedInUsername);
+                    return new ResourceNotFoundException(AppConstants.USER_NOT_FOUND + loggedInUsername);
+                });
 
-                        return new ResourceNotFoundException(AppConstants.USER_NOT_FOUND + loggedInUsername);
-                    });
-
-            if (loggedInUser.getRole() == null ||
-                    loggedInUser.getRole().getRoleName() != RoleName.ROLE_ADMIN) {
-                throw new BadRequestException(AppConstants.ONLY_ADMIN_ALLOWED);
-            }
-
-            log.info("Admin authorization successful. Assigning role: {}", requestedRole);
-
-            return requestedRole;
-
-        } catch (Exception e) {
-            log.error("Role assignment failed :{}", e.getMessage());
-
+        if (loggedInUser.getRole() == null || loggedInUser.getRole().getRoleName() != RoleName.ADMIN) {
             throw new BadRequestException(AppConstants.ONLY_ADMIN_ALLOWED);
         }
+
+        log.info("Admin authorization successful. Assigning role: {}", requestedRole);
+        return requestedRole;
     }
+
 
     /**
      * Fetch users based on filters.
      *
-     * @param username username
-     * @param email email
+     * @param username    username
+     * @param email       email
      * @param phoneNumber phone number
      * @return list of users
      */
@@ -211,11 +206,12 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(AppConstants.USER_NOT_FOUND + username));
 
-        return mapToUserResponseDTO(user);
+        return userMapper.toDTO(user);
     }
 
     /**
      * Get user by email.
+     *
      * @param email
      * @return user details
      */
@@ -227,11 +223,12 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(AppConstants.USER_NOT_FOUND + email));
 
-        return mapToUserResponseDTO(user);
+        return userMapper.toDTO(user);
     }
 
     /**
      * get user by phoneNumber
+     *
      * @param phoneNumber
      * @return user detials
      */
@@ -243,7 +240,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(AppConstants.USER_NOT_FOUND + phoneNumber));
 
-        return mapToUserResponseDTO(user);
+        return userMapper.toDTO(user);
     }
 
     /**
@@ -258,7 +255,7 @@ public class UserServiceImpl implements UserService {
         List<UserEntity> users = userRepository.findAll();
 
         return users.stream()
-                .map(this::mapToUserResponseDTO)
+                .map(userMapper::toDTO)
                 .toList();
     }
 
@@ -276,50 +273,64 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(AppConstants.USER_NOT_FOUND + username));
 
-        return mapToUserResponseDTO(user);
+        return userMapper.toDTO(user);
+    }
+
+    private UserEntity applyUpdates(UserEntity user, UpdateUserDTO dto) {
+        if (StringUtils.hasText(dto.getEmail())) {
+            if (!dto.getEmail().equals(user.getEmail())
+                    && userRepository.existsByEmail(dto.getEmail())) {
+                throw new BadRequestException(AppConstants.EMAIL_ALREADY_EXISTS);
+            }
+            user.setEmail(dto.getEmail().trim());
+        }
+
+        if (StringUtils.hasText(dto.getPhoneNumber())) {
+            String newPhone = dto.getPhoneNumber().trim();
+
+            if (!newPhone.equals(user.getPhoneNumber())
+                    && userRepository.existsByPhoneNumber(newPhone)) {
+                throw new BadRequestException(AppConstants.PHONE_ALREADY_EXISTS);
+            }
+
+            user.setPhoneNumber(newPhone);
+        }
+
+        if (StringUtils.hasText(dto.getPassword())) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        return userRepository.save(user);
     }
 
     /**
      * Update user by username.
      *
      * @param username username
-     * @param dto update data
+     * @param dto   update data
      * @return updated user
      */
     @Override
     @Transactional
-    @CachePut(cacheNames = "users", key = "'username_' + #username")
+    @Caching(
+            put = {@CachePut(cacheNames = "users", key = "'username_' + #username")},
+            evict = {@CacheEvict(cacheNames = "users", key = "'allUsers'")}
+    )
     public UserResponseDTO updateUserByUsername(String username, UpdateUserDTO dto) {
         UserEntity existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(AppConstants.USER_NOT_FOUND + username));
 
-        if (StringUtils.hasText(dto.getEmail())) {
-            existingUser.setEmail(dto.getEmail().trim());
-        }
-
-        if (StringUtils.hasText(dto.getPhoneNumber())) {
-            existingUser.setPhoneNumber(dto.getPhoneNumber().trim());
-        }
-
-        if (StringUtils.hasText(dto.getPassword())) {
-            existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
-        }
-
-        existingUser.setUpdatedBy(username);
-        UserEntity updatedUser = userRepository.save(existingUser);
-        return mapToUserResponseDTO(updatedUser);
+        UserEntity updatedUser = applyUpdates(existingUser, dto);
+        return userMapper.toDTO(updatedUser);
     }
 
-    /**
-     * Update current user profile.
-     *
-     * @param dto update data
-     * @return updated user
-     */
     @Override
     @Transactional
-    @CachePut(cacheNames = "users", key = "'username_' + #result.username")
+    @Caching(
+            put = {@CachePut(cacheNames = "users", key = "'username_' + #result.username")},
+            evict = {@CacheEvict(cacheNames = "users", key = "'allUsers'")}
+    )
     public UserResponseDTO updateMyProfile(UpdateUserDTO dto) {
         String username = loggedInUserServiceImpl.getUsername();
 
@@ -327,21 +338,8 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(AppConstants.USER_NOT_FOUND + username));
 
-        if (StringUtils.hasText(dto.getEmail())) {
-            existingUser.setEmail(dto.getEmail().trim());
-        }
-
-        if (StringUtils.hasText(dto.getPhoneNumber())) {
-            existingUser.setPhoneNumber(dto.getPhoneNumber().trim());
-        }
-
-        if (StringUtils.hasText(dto.getPassword())) {
-            existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
-        }
-
-        existingUser.setUpdatedBy(username);
-        UserEntity updatedUser = userRepository.save(existingUser);
-        return mapToUserResponseDTO(updatedUser);
+        UserEntity updatedUser = applyUpdates(existingUser, dto);
+        return userMapper.toDTO(updatedUser);
     }
 
     /**
@@ -352,7 +350,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @CacheEvict(cacheNames = "users", allEntries = true)
     public void deleteUserByUsername(String username) {
-              UserEntity user = userRepository.findByUsername(username)
+        UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(AppConstants.USER_NOT_FOUND + username));
 
@@ -361,28 +359,5 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    /**
-     * Converts user entity to response DTO.
-     *
-     * @param user entity
-     * @return response DTO
-     */
-    @Override
-    public UserResponseDTO mapToUserResponseDTO(UserEntity user) {
-        UserResponseDTO dto = new UserResponseDTO();
-        dto.setUsername(user.getUsername());
-        dto.setEmail(user.getEmail());
-        dto.setPhoneNumber(user.getPhoneNumber());
 
-        if (user.getRole() != null) {
-            dto.setRole(user.getRole().getRoleName());
-        }
-
-        dto.setCreatedBy(user.getCreatedBy());
-        dto.setUpdatedBy(user.getUpdatedBy());
-        dto.setCreatedTimeStamp(user.getCreatedTimeStamp());
-        dto.setUpdatedTimeStamp(user.getUpdatedTimeStamp());
-
-        return dto;
-    }
 }

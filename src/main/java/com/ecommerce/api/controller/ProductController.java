@@ -73,7 +73,7 @@ public class ProductController {
     public ResponseEntity<ProductResponseDTO> updateProduct(@Valid @RequestBody ProductUpdateDTO dto) {
         log.info("Update product: {}", dto.getName());
         ProductResponseDTO response = productService.updateProductByName(dto );
-        log.info("Product update SucessFully by username:{}",response.getName());
+        log.info("Product update Successfully by username:{}",response.getName());
         return ResponseEntity.ok(response);
     }
 

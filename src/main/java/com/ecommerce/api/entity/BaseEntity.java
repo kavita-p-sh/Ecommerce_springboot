@@ -26,7 +26,7 @@ public class BaseEntity {
 
     @CreatedDate
     @Column(name = "created_date")
-    private LocalDateTime createdTimeStamp;
+    private LocalDateTime createdTimestamp;
 
     @LastModifiedBy
     @Column(name = "updated_by")
@@ -34,5 +34,5 @@ public class BaseEntity {
 
     @LastModifiedDate
     @Column(name = "updated_date")
-    private LocalDateTime updatedTimeStamp;
+    private LocalDateTime updatedTimestamp;
 }

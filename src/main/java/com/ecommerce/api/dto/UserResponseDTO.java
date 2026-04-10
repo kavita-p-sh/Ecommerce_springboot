@@ -16,7 +16,7 @@ public class UserResponseDTO implements Serializable {
     private String phoneNumber;
     private String createdBy;
     private String updatedBy;
-    private LocalDateTime createdTimeStamp;
-    private LocalDateTime updatedTimeStamp;
+    private LocalDateTime createdTimestamp;
+    private LocalDateTime updatedTimestamp;
 
 }

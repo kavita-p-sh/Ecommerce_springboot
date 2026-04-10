@@ -4,15 +4,16 @@ import com.ecommerce.api.dto.LoginRequestDTO;
 import com.ecommerce.api.dto.RegisterRequestDTO;
 import com.ecommerce.api.dto.UserResponseDTO;
 import com.ecommerce.api.entity.UserEntity;
+import com.ecommerce.api.mapper.UserMapper;
 import com.ecommerce.api.security.JwtUtil;
 import com.ecommerce.api.service.AuthService;
-import com.ecommerce.api.service.UserDetailsService;
 import com.ecommerce.api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -28,6 +29,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
     private final UserService userService;
+    private final UserMapper userMapper;
+
 
     /**
      * Authenticates the user using username and password
@@ -64,6 +67,6 @@ public class AuthServiceImpl implements AuthService {
 
         UserEntity user = userService.registerUser(dto);
 
-        return userService.mapToUserResponseDTO(user);
+        return userMapper.toDTO(user);
     }
 }

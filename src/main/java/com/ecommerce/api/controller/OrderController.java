@@ -22,8 +22,7 @@ import java.util.List;
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
 @Slf4j
-public class
-OrderController {
+public class OrderController {
 
     private final OrderService orderService;
 
@@ -47,26 +46,34 @@ OrderController {
     }
 
     /**
-     * Get orders.
-     * Admin -gets all orders
-     * User -gets only their orders
-     * filtering
-     * @return list of orders
+     * Fetch orders with optional filters.
+     * Admin/Manager can fetch all orders.
+     * User can fetch their own orders.
+     *
+     * @param status order status
+     * @param createdBy user who created the order
+     * @param minAmount minimum total amount
+     * @param maxAmount maximum total amount
+     * @param minQuantity minimum total quantity
+     * @return list of filtered orders
      */
-     @GetMapping
-     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN})
-     public ResponseEntity<List<OrderResponseDTO>> getOrders(
+    @GetMapping
+    @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
+    public ResponseEntity<List<OrderResponseDTO>> getOrders(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String createdBy,
-            @RequestParam(required = false) BigDecimal totalAmount,
-            @RequestParam(required = false) Integer totalQuantity) {
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+            @RequestParam(required = false) Integer minQuantity) {
 
-        log.info("Fetching orders with filters");
+        log.info("Fetching orders with filters - status: {}, createdBy: {}, minAmount: {}, maxAmount: {}, minQuantity: {}",
+                status, createdBy, minAmount, maxAmount, minQuantity);
 
         return ResponseEntity.ok(
-                orderService.getOrders(status, createdBy, totalAmount, totalQuantity)
+                orderService.getOrders(status, createdBy, minAmount, maxAmount, minQuantity)
         );
     }
+
     /**
      * cacel order by id
      * @param orderId id of order

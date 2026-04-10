@@ -1,19 +1,17 @@
-
 package com.ecommerce.api.service.impl;
 
 import com.ecommerce.api.entity.UserEntity;
 import com.ecommerce.api.repository.UserRepository;
-import com.ecommerce.api.service.UserDetailsService;
 import com.ecommerce.api.util.AppConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
 
 /**
  * Implementation of UserDetailsService used by Spring Security.
@@ -30,9 +28,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     /**
      * Loads user details by username.
+     *
      * @param username the username identifying the user whose data is required.
-     * @return
-     * @throws UsernameNotFoundException
+     * @return user details for Spring Security authentication
+     * @throws UsernameNotFoundException if user is not found
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -50,7 +49,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                List.of(new SimpleGrantedAuthority(user.getRole().getRoleName().name()))
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName().name()))
         );
     }
 }

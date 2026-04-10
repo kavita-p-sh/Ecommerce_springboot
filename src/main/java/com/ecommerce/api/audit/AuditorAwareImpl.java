@@ -1,4 +1,4 @@
-package com.ecommerce.api.config;
+package com.ecommerce.api.audit;
 
 import com.ecommerce.api.util.AppConstants;
 import lombok.extern.slf4j.Slf4j;

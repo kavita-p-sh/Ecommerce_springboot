@@ -7,8 +7,9 @@ public class AppConstants {
 
     private AppConstants(){}
 
-    public static final String ROLE_ADMIN = "ROLE_ADMIN";
-    public static final String ROLE_USER = "ROLE_USER";
+    public static final String ROLE_ADMIN = "ADMIN";
+    public static final String ROLE_USER = "USER";
+    public static final String ROLE_MANAGER = "MANAGER";
     public static final String SYSTEM = "SYSTEM";
 
 
@@ -64,6 +65,6 @@ public class AppConstants {
     public static final String BAD_REQUEST = "Invalid request";
     public static final String GENERIC_ERROR = "Something went wrong, please try again later";
     public static final String ROLE_NOT_FOUND = "Role not found";
-    public static final String ROLE_MANAGER = "ROLE_MANAGER";
     public static final String INVALID_ROLE = "Invalid Role";
+    public static final String ROLE_NOT_ASSIGNED = "No roles assigned to the user";
 }

@@ -26,7 +26,6 @@ public class UserController {
 
     /**
      * Get users based on filters
-     * @return
      */
     @GetMapping
     @RolesAllowed({AppConstants.ROLE_ADMIN})
@@ -42,7 +41,6 @@ public class UserController {
     }
     /**
      * Get profile of currently logged-in user
-     * @param
      * @return current user profile details
      */
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
