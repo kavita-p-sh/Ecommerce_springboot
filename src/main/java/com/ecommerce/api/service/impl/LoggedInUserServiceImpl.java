@@ -82,7 +82,11 @@ public class LoggedInUserServiceImpl implements LoggedInUserService {
 
     @Override
     public String getRole() {
-        return getCurrentUser().getRole();
+        return getAuthentication().getAuthorities()
+                .stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElseThrow(() -> new RuntimeException(AppConstants.ROLE_NOT_ASSIGNED));
     }
 
 

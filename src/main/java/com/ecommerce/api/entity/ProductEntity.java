@@ -1,8 +1,6 @@
 package com.ecommerce.api.entity;
-import com.ecommerce.api.util.RegexConstant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;

@@ -1,12 +1,12 @@
 package com.ecommerce.api.service.impl;
 
-import com.ecommerce.api.dto.LoggedInUserDTO;
 import com.ecommerce.api.dto.ProductRequestDTO;
 import com.ecommerce.api.dto.ProductResponseDTO;
 import com.ecommerce.api.dto.ProductUpdateDTO;
 import com.ecommerce.api.entity.ProductEntity;
 import com.ecommerce.api.exception.BadRequestException;
 import com.ecommerce.api.exception.ResourceNotFoundException;
+import com.ecommerce.api.mapper.ProductMapper;
 import com.ecommerce.api.repository.ProductRepository;
 import com.ecommerce.api.service.ProductService;
 import com.ecommerce.api.util.AppConstants;
@@ -27,7 +27,7 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final LoggedInUserServiceImpl loggedInUserServiceImpl;
+    private final ProductMapper productMapper;
 
     /**
      * Adds a new product to the system.
@@ -55,7 +55,7 @@ public class ProductServiceImpl implements ProductService {
         product.setQuantity(requestDTO.getQuantity());
 
 
-        return mapToResponse(productRepository.save(product));
+        return productMapper.toDTO(productRepository.save(product));
 
     }
 
@@ -78,14 +78,14 @@ public class ProductServiceImpl implements ProductService {
             log.info("Fetching product by name: {}", name);
             ProductEntity product = productRepository.findByName(name)
                     .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PRODUCT_NOT_FOUND + name));
-            return List.of(mapToResponse(product));
+            return List.of(productMapper.toDTO(product));
         }
 
         if (price != null) {
             log.info("Fetching products by price: {}", price);
             return productRepository.findByPrice(price)
                     .stream()
-                    .map(this::mapToResponse)
+                    .map(productMapper::toDTO)
                     .toList();
         }
 
@@ -93,7 +93,7 @@ public class ProductServiceImpl implements ProductService {
             log.info("Fetching products by quantity: {}", quantity);
             return productRepository.findByQuantity(quantity)
                     .stream()
-                    .map(this::mapToResponse)
+                    .map(productMapper::toDTO)
                     .toList();
         }
 
@@ -115,88 +115,69 @@ public class ProductServiceImpl implements ProductService {
 
         return productRepository.findAll()
                 .stream()
-                .map(this::mapToResponse)
+                .map(productMapper::toDTO)
                 .toList();
     }
 
     /**
-     * Updates product details using product name.
-     * Only provided fields are updated.
+     * Updates an existing product by productId
      *
-     * @param updatedto product update data
-     * @return updated product details
+     * @param id the ID of the product to update
+     * @param dto the updated product data
+     * @return the updated product details
      */
     @Override
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
-    public ProductResponseDTO updateProductByName(ProductUpdateDTO updatedto) {
+    public ProductResponseDTO updateProductById(Long id, ProductUpdateDTO dto) {
 
-        log.info("Updating product: {}", updatedto.getName());
+        log.info("Updating product with id: {}", id);
 
-        LoggedInUserDTO user = loggedInUserServiceImpl.getCurrentUser();
-
-        ProductEntity product = productRepository.findByName(updatedto.getName())
+        ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.PRODUCT_NOT_FOUND + updatedto.getName()));
+                        new ResourceNotFoundException(AppConstants.PRODUCT_NOT_FOUND + id));
 
-        if (StringUtils.hasText(updatedto.getDescription())) {
-            product.setDescription(updatedto.getDescription().trim());
+        if (StringUtils.hasText(dto.getName())) {
+            product.setName(dto.getName().trim());
         }
 
-        if (updatedto.getPrice() != null) {
-            product.setPrice(updatedto.getPrice());
+        if (StringUtils.hasText(dto.getDescription())) {
+            product.setDescription(dto.getDescription().trim());
         }
 
-        if (updatedto.getQuantity() != null) {
-            product.setQuantity(updatedto.getQuantity());
+        if (dto.getPrice() != null) {
+            product.setPrice(dto.getPrice());
         }
 
-        product.setUpdatedBy(user.getUsername());
+        if (dto.getQuantity() != null) {
+            product.setQuantity(dto.getQuantity());
+        }
 
         ProductEntity savedProduct = productRepository.save(product);
 
         log.info("Product updated successfully: {}", savedProduct.getName());
 
-        return mapToResponse(savedProduct);
+        return productMapper.toDTO(savedProduct);
     }
-
     /**
-     * Deletes a product from database using name.
+     * Deletes a product from database using id.
      *
-     * @param name product name
+     * @param id product id
      */
     @Override
     @Transactional
     @CacheEvict(value = "products", allEntries = true)
-    public void deleteProductByName(String name) {
+    public void deleteProductById(Long id) {
 
-        log.info("Deleting product: {}", name);
+        log.info("Deleting product with id: {}", id);
 
-        ProductEntity product = productRepository.findByName(name)
+        ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(AppConstants.PRODUCT_NOT_FOUND + name));
+                        new ResourceNotFoundException(AppConstants.PRODUCT_NOT_FOUND + id));
 
         productRepository.delete(product);
-    }
 
-    /**
-     * Converts ProductEntity to ProductResponseDTO.
-     *
-     * @param product entity object
-     * @return response DTO
-     */
-    private ProductResponseDTO mapToResponse(ProductEntity product) {
-
-        ProductResponseDTO responseDTO = new ProductResponseDTO();
-
-        responseDTO.setProductId(product.getProductId());
-        responseDTO.setName(product.getName());
-        responseDTO.setDescription(product.getDescription());
-        responseDTO.setPrice(product.getPrice());
-        responseDTO.setQuantity(product.getQuantity());
-        responseDTO.setUpdatedBy(product.getUpdatedBy());
-
-        return responseDTO;
+        log.info("Product deleted successfully with id: {}", id);
     }
 
 

@@ -18,22 +18,11 @@ WHERE NOT EXISTS (
 );
 
 INSERT INTO order_status (status_name)
-SELECT 'PENDING'
-WHERE NOT EXISTS (
-    SELECT 1 FROM order_status WHERE status_name = 'PENDING'
-);
-
-INSERT INTO order_status (status_name)
 SELECT 'PLACED'
 WHERE NOT EXISTS (
     SELECT 1 FROM order_status WHERE status_name = 'PLACED'
 );
 
-INSERT INTO order_status (status_name)
-SELECT 'SHIPPED'
-WHERE NOT EXISTS (
-    SELECT 1 FROM order_status WHERE status_name = 'SHIPPED'
-);
 
 INSERT INTO order_status (status_name)
 SELECT 'DELIVERED'

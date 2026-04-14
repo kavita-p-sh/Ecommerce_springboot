@@ -5,6 +5,8 @@ import com.ecommerce.api.dto.RegisterRequestDTO;
 import com.ecommerce.api.dto.UserResponseDTO;
 import com.ecommerce.api.service.AuthService;
 import com.ecommerce.api.util.AppConstants;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
  * Handles authentication APIs like login, register, profile and logout.
  */
 @Slf4j
+
+@Tag(name = "Auth API", description = "Authentication APIs")
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -30,6 +34,7 @@ public class AuthController {
      * Register new user.
      */
     @PostMapping("/register")
+    @Operation(summary = "Register user",description = "Registers a new user")
     public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody RegisterRequestDTO dto) {
         log.info("Register request received for username: {}", dto.getUsername());
 
@@ -44,6 +49,7 @@ public class AuthController {
      * Login user and return token.
      */
     @PostMapping("/login")
+    @Operation(summary = "Login user" ,description = "Authenticates user and returns JWT token")
     public ResponseEntity<String> login(@Valid @RequestBody LoginRequestDTO dto) {
         log.info("Login request for username: {}", dto.getUsername());
 
@@ -61,6 +67,7 @@ public class AuthController {
      * For better security, token blacklist can be used.
      */
     @PostMapping("/logout")
+    @Operation(summary = "Logout user", description = "Logs out the authenticated user")
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
     public ResponseEntity<String> logout() {
 

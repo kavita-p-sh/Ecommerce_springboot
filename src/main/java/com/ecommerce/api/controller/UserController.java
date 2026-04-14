@@ -4,6 +4,8 @@ import com.ecommerce.api.dto.UpdateUserDTO;
 import com.ecommerce.api.dto.UserResponseDTO;
 import com.ecommerce.api.service.UserService;
 import com.ecommerce.api.util.AppConstants;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import java.util.List;
 @RequestMapping("/api/users")
 @Slf4j
 @RequiredArgsConstructor
+@Tag(name = "User Controller", description = "APIs for managing users and profiles")
 public class UserController {
 
     private final UserService userService;
@@ -29,6 +32,8 @@ public class UserController {
      */
     @GetMapping
     @RolesAllowed({AppConstants.ROLE_ADMIN})
+    @Operation(summary = "Get users with filters",
+            description = "Fetches users based on optional filters like username, email, and phone number")
     public ResponseEntity<List<UserResponseDTO>> getUsers(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
@@ -44,6 +49,9 @@ public class UserController {
      * @return current user profile details
      */
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
+    @Operation(
+            summary = "Get current user profile",
+            description = "Fetches the profile details of the currently logged-in user.")
     @GetMapping("/profile")
     public ResponseEntity<UserResponseDTO> getMyProfile() {
         log.info("Fetching current user profile");
@@ -57,6 +65,8 @@ public class UserController {
      * @return updated user response
      */
     @RolesAllowed({AppConstants.ROLE_ADMIN})
+    @Operation(summary = "Update user by username",
+            description = "Updates user details using username, Only Admin can update user")
     @PutMapping
     public ResponseEntity<UserResponseDTO> updateUser(@Valid  @RequestBody UpdateUserDTO dto) {
         UserResponseDTO updatedUser = userService.updateUserByUsername(dto.getUsername(), dto);
@@ -70,6 +80,8 @@ public class UserController {
      * @return updated user data
      */
     @PutMapping("/profile")
+    @Operation(summary = "Update current user profile",
+            description = "Updates the profile details of the currently logged-in user.")
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN})
     public ResponseEntity<UserResponseDTO> updateMyProfile(@Valid @RequestBody UpdateUserDTO dto) {
         return ResponseEntity.ok(userService.updateMyProfile(dto));
@@ -81,6 +93,8 @@ public class UserController {
      * @return
      */
     @RolesAllowed(AppConstants.ROLE_ADMIN)
+    @Operation(summary = "Delete user by username",
+            description = "Deletes a user using username. Only admin can delete users.")
     @DeleteMapping("/{username}")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {
         log.info("deleting user by admin:{}",username);

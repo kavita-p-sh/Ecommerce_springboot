@@ -3,7 +3,6 @@ package com.ecommerce.api.service.impl;
 import com.ecommerce.api.dto.LoginRequestDTO;
 import com.ecommerce.api.dto.RegisterRequestDTO;
 import com.ecommerce.api.dto.UserResponseDTO;
-import com.ecommerce.api.entity.UserEntity;
 import com.ecommerce.api.mapper.UserMapper;
 import com.ecommerce.api.security.JwtUtil;
 import com.ecommerce.api.service.AuthService;
@@ -29,7 +28,6 @@ public class AuthServiceImpl implements AuthService {
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
     private final UserService userService;
-    private final UserMapper userMapper;
 
 
     /**
@@ -65,8 +63,7 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("Register user: {}", dto.getUsername());
 
-        UserEntity user = userService.registerUser(dto);
-
-        return userMapper.toDTO(user);
+        UserResponseDTO user = userService.registerUser(dto);
+        return user;
     }
 }
