@@ -47,11 +47,13 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     @CacheEvict(cacheNames = "users", key = "'allUsers'")
-    public UserEntity registerUser(RegisterRequestDTO dto) {
+    public UserResponseDTO registerUser(RegisterRequestDTO dto) {
         log.info("Register request received for username: {}", dto.getUsername());
 
         RoleName roleName = resolveAndValidateRole(dto.getRole());
-        return createUser(dto, roleName);
+        UserEntity savedUser = createUser(dto, roleName);
+
+        return userMapper.toDTO(savedUser);
     }
 
     /**
@@ -62,7 +64,7 @@ public class UserServiceImpl implements UserService {
      * @return saved user
      */
 
-    public UserEntity createUser(RegisterRequestDTO dto, RoleName roleName) {
+    private UserEntity createUser(RegisterRequestDTO dto, RoleName roleName) {
         validateUserNotExists(dto);
 
         RoleEntity role = getValidRole(roleName);
@@ -73,11 +75,12 @@ public class UserServiceImpl implements UserService {
 
         return savedUser;
     }
-
     /**
-     * Checks if user already exists.
+     * Checks whether a user with the given username, email,
+     * or phone number already exists.
      *
-     * @param dto
+     * @param dto the registration data to check for username, email,
+     *            and phone number uniqueness
      */
     private void validateUserNotExists(RegisterRequestDTO dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
@@ -130,7 +133,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Validates role during registration.
-     * Assigns ROLE_USER by default if no role is provided.
+     * Assigns USER by default if no role is provided.
      * Allows ADMIN role only if logged-in user is admin.
      * Throws exception if unauthorized role assignment is attempted.
      */

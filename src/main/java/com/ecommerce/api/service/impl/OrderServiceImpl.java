@@ -1,13 +1,12 @@
 package com.ecommerce.api.service.impl;
 
-
 import com.ecommerce.api.dto.OrderItemRequestDTO;
-import com.ecommerce.api.dto.OrderItemResponseDTO;
 import com.ecommerce.api.dto.OrderRequestDTO;
 import com.ecommerce.api.dto.OrderResponseDTO;
 import com.ecommerce.api.enums.OrderStatus;
 import com.ecommerce.api.exception.BadRequestException;
 import com.ecommerce.api.exception.ResourceNotFoundException;
+import com.ecommerce.api.mapper.OrderMapper;
 import com.ecommerce.api.service.OrderService;
 import com.ecommerce.api.util.AppConstants;
 import com.ecommerce.api.entity.*;
@@ -35,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderStatusRepository orderStatusRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderMapper orderMapper;
 
     /**
      * Creates a new order for the logged-in user.
@@ -48,7 +48,9 @@ public class OrderServiceImpl implements OrderService {
     @CacheEvict(value = {"orders", "ordersByUser"}, allEntries = true)
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
+        log.info("Creating order for user: {}", username);
         UserEntity user = getUser(username);
+
         OrderStatusEntity placedStatus = getOrderStatus(OrderStatus.PLACED.name());
 
         Map<Long, ProductEntity> productMap = getProductMap(request.getItems());
@@ -56,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
         OrderEntity order = new OrderEntity();
         order.setUser(user);
         order.setStatus(placedStatus);
-        order.setCreatedBy(username);
+
 
         setOrderTotals(request.getItems(), productMap, order);
 
@@ -64,7 +66,7 @@ public class OrderServiceImpl implements OrderService {
 
         List<OrderItemEntity> savedItems = saveOrderItems(request.getItems(), savedOrder, productMap, username);
 
-        return mapToDTO(savedOrder, savedItems);
+        return orderMapper.toDTO(savedOrder, savedItems);
     }
     /**
      * Calculates total amount and total quantity of order.
@@ -73,6 +75,8 @@ public class OrderServiceImpl implements OrderService {
                                 Map<Long, ProductEntity> productMap,
                                 OrderEntity order) {
 
+        log.debug("Calculating order totals for {} items", items.size());
+
         BigDecimal totalAmount = BigDecimal.ZERO;
         int totalQuantity = 0;
 
@@ -80,10 +84,12 @@ public class OrderServiceImpl implements OrderService {
             ProductEntity product = productMap.get(item.getProductId());
 
             if (product == null) {
+                log.error("Product not found for productId: {}", item.getProductId());
                 throw new ResourceNotFoundException(AppConstants.PRODUCT_NOT_FOUND);
             }
 
             if (product.getQuantity() < item.getQuantity()) {
+                log.warn("Out of stock for product: {}", product.getName());
                 throw new BadRequestException(AppConstants.OUT_OF_STOCK + product.getName());
             }
 
@@ -96,6 +102,8 @@ public class OrderServiceImpl implements OrderService {
 
         order.setTotalAmount(totalAmount);
         order.setTotalQuantity(totalQuantity);
+        log.debug("Total amount: {}, Total quantity: {}", totalAmount, totalQuantity);
+
     }
 
     /**
@@ -111,7 +119,6 @@ public class OrderServiceImpl implements OrderService {
                     ProductEntity product = productMap.get(item.getProductId());
 
                     product.setQuantity(product.getQuantity() - item.getQuantity());
-                    product.setUpdatedBy(username);
                     productRepository.save(product);
 
                     OrderItemEntity orderItem = new OrderItemEntity();
@@ -124,48 +131,6 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
     }
 
-    /**
-     * Converts Order entity to DTO.
-     */
-    private OrderResponseDTO mapToDTO(OrderEntity order) {
-        List<OrderItemEntity> items = orderItemRepository.findByOrder(order);
-        return mapToDTO(order, items);
-    }
-
-    /**
-     * Converts Order + Items into response DTO.
-     */
-    private OrderResponseDTO mapToDTO(OrderEntity order, List<OrderItemEntity> items) {
-        OrderResponseDTO response = new OrderResponseDTO();
-        response.setOrderId(order.getOrderId());
-        response.setTotalAmount(order.getTotalAmount());
-        response.setTotalQuantity(order.getTotalQuantity());
-        response.setStatus(order.getStatus().getStatusName());
-        response.setCreatedBy(order.getCreatedBy());
-        response.setCreatedTimestamp(order.getCreatedTimestamp());
-        response.setUpdatedTimestamp(order.getUpdatedTimestamp());
-
-        response.setItems(mapOrderItemsToDTO(items));
-
-        return response;
-    }
-
-    /**
-     * Converts list of OrderItemEntity to DTO list.
-     */
-    private List<OrderItemResponseDTO> mapOrderItemsToDTO(List<OrderItemEntity> items) {
-        return items.stream()
-                .map(item -> {
-                    OrderItemResponseDTO dto = new OrderItemResponseDTO();
-                    dto.setOrderItemId(item.getOrderItemId());
-                    dto.setProductId(item.getProduct().getProductId());
-                    dto.setProductName(item.getProduct().getName());
-                    dto.setPrice(item.getProduct().getPrice());
-                    dto.setQuantity(item.getQuantity());
-                    return dto;
-                })
-                .toList();
-    }
     /**
      * Fetches orders based on optional filters like status, user,
      * total amount or quantity.
@@ -186,28 +151,28 @@ public class OrderServiceImpl implements OrderService {
         if (status != null && !status.isBlank()) {
             return orderRepository.findByStatus_StatusName(status)
                     .stream()
-                    .map(this::mapToDTO)
+                    .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
                     .toList();
         }
 
         if (createdBy != null && !createdBy.isBlank()) {
             return orderRepository.findByCreatedBy(createdBy)
                     .stream()
-                    .map(this::mapToDTO)
+                    .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
                     .toList();
         }
 
         if (minAmount != null && maxAmount != null) {
             return orderRepository.findByTotalAmountBetween(minAmount, maxAmount)
                     .stream()
-                    .map(this::mapToDTO)
+                    .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
                     .toList();
         }
 
         if (minQuantity != null) {
             return orderRepository.findByTotalQuantityGreaterThanEqual(minQuantity)
                     .stream()
-                    .map(this::mapToDTO)
+                    .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
                     .toList();
         }
 
@@ -272,7 +237,7 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderResponseDTO> getAllOrders() {
         return orderRepository.findAll()
                 .stream()
-                .map(this::mapToDTO)
+                .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
                 .toList();
     }
 
@@ -284,18 +249,14 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "ordersByUser", key = "#root.target.loggedInUserServiceImpl.getCurrentUser().getUsername()")
     public List<OrderResponseDTO> getOrdersByUser() {
         String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
-        return getOrdersByUsername(username);
-    }
-
-    @Cacheable(value = "ordersByUser", key = "#username")
-    public List<OrderResponseDTO> getOrdersByUsername(String username) {
         UserEntity user = getUser(username);
 
         return orderRepository.findByUser(user)
                 .stream()
-                .map(this::mapToDTO)
+                .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
                 .toList();
     }
 
@@ -338,18 +299,16 @@ public class OrderServiceImpl implements OrderService {
         for (OrderItemEntity item : items) {
             ProductEntity product = item.getProduct();
             product.setQuantity(product.getQuantity() + item.getQuantity());
-            product.setUpdatedBy(username);
             productRepository.save(product);
         }
 
         order.setStatus(cancelledStatus);
-        order.setUpdatedBy(username);
 
         OrderEntity updatedOrder = orderRepository.save(order);
 
         log.info("Order cancelled successfully. Order id: {}, user: {}", orderId, username);
 
-        return mapToDTO(updatedOrder, items);
+        return orderMapper.toDTO(updatedOrder, items);
     }
 
 

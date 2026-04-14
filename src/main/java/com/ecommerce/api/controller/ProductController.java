@@ -5,6 +5,8 @@ import com.ecommerce.api.dto.ProductResponseDTO;
 import com.ecommerce.api.dto.ProductUpdateDTO;
 import com.ecommerce.api.service.ProductService;
 import com.ecommerce.api.util.AppConstants;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import java.util.List;
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Product Controller", description = "APIs for managing products")
 public class ProductController {
 
     private final ProductService productService;
@@ -33,10 +36,12 @@ public class ProductController {
     /**
      * create product
      * @param dto request data for product creation
-     * @return
+     * @return ResponseEntity containing created product details with HTTP status 201 (Created)
      */
     @PostMapping
     @RolesAllowed(AppConstants.ROLE_ADMIN)
+    @Operation(summary = "Create Product",
+                description = "Creates a new Product. Only admin can create products.")
     public ResponseEntity<ProductResponseDTO> createProduct(
             @Valid @RequestBody ProductRequestDTO dto) {
 
@@ -54,6 +59,8 @@ public class ProductController {
 
     @GetMapping
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
+    @Operation(summary = "Get products",
+               description = "Fetch all products and filter them by name,price and quantity.")
     public ResponseEntity<List<ProductResponseDTO>> getProducts(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) BigDecimal price,
@@ -63,31 +70,46 @@ public class ProductController {
 
         return ResponseEntity.ok(productService.getProducts(name, price, quantity));
     }
+
     /**
-     * update product by name
-     * @param dto contains updated product data
-     * @return update product detail
+     * Updates an existing product by its ID.
+     *
+     * @param id product ID
+     * @param dto updated product data
+     * @return updated product details
      */
-    @PutMapping
-    @RolesAllowed({AppConstants.ROLE_ADMIN})
-    public ResponseEntity<ProductResponseDTO> updateProduct(@Valid @RequestBody ProductUpdateDTO dto) {
-        log.info("Update product: {}", dto.getName());
-        ProductResponseDTO response = productService.updateProductByName(dto );
-        log.info("Product update Successfully by username:{}",response.getName());
+    @PutMapping("/{id}")
+    @RolesAllowed(AppConstants.ROLE_ADMIN)
+    @Operation(summary = "Update Product By ID",
+               description ="Update product details using product ID.Only Admin can update products" )
+    public ResponseEntity<ProductResponseDTO> updateProduct(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductUpdateDTO dto) {
+
+        log.info("Updating product with id: {}", id);
+        ProductResponseDTO response = productService.updateProductById(id, dto);
+        log.info("Product updated successfully: {}", response.getName());
         return ResponseEntity.ok(response);
     }
 
     /**
-     * Delete product by name
-     * @param name product name to delete
-     * @return success message
+     * Deletes a product by its ID.
+     *
+     * @param id the ID of the product to delete
+     * @return success message after product is deleted
      */
-    @DeleteMapping("/{name}")
+    @DeleteMapping("/{id}")
     @RolesAllowed(AppConstants.ROLE_ADMIN)
-    public ResponseEntity<String> deleteProduct(@PathVariable String name) {
-        log.info("Delete Product: {}", name);
-        productService.deleteProductByName(name);
-        log.info("Product deleted successfully: {}", name);
+    @Operation(summary = "Delete product by ID",
+               description = "Deletes a product by ID .Only admin can delete product")
+    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
+
+        log.info("Delete Product with id: {}", id);
+
+        productService.deleteProductById(id);
+
+        log.info("Product deleted successfully with id: {}", id);
+
         return ResponseEntity.ok(AppConstants.PRODUCT_DELETED_SUCCESS);
     }
 }

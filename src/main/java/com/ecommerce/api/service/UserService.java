@@ -3,7 +3,6 @@ package com.ecommerce.api.service;
 import com.ecommerce.api.dto.RegisterRequestDTO;
 import com.ecommerce.api.dto.UpdateUserDTO;
 import com.ecommerce.api.dto.UserResponseDTO;
-import com.ecommerce.api.entity.UserEntity;
 
 import java.util.List;
 
@@ -16,9 +15,12 @@ public interface UserService {
 
 
     /**
-     * Registers a new user in the system.
+     * Registers a new user.
+     *
+     * @param dto user request data
+     * @return registered user details
      */
-    UserEntity registerUser(RegisterRequestDTO dto);
+    UserResponseDTO registerUser(RegisterRequestDTO dto);
 
     /**
      * Fetches users based on username, email, or phone.

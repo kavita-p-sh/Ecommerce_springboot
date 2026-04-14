@@ -3,6 +3,8 @@ package com.ecommerce.api.service;
 import com.ecommerce.api.dto.ProductRequestDTO;
 import com.ecommerce.api.dto.ProductResponseDTO;
 import com.ecommerce.api.dto.ProductUpdateDTO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -42,17 +44,16 @@ public interface ProductService {
      */
     List<ProductResponseDTO> getProducts(String name, BigDecimal price, Integer quantity);
 
+
     /**
-     * Updates product details using product name.
+     * Updates an existing product by its productId
      *
-     * @param dto the product update data
-     * @return updated product details
+     * @param id the ID of the product to update
+     * @param dto the updated product data
+     * @return the updated product details
      */
-    ProductResponseDTO updateProductByName(ProductUpdateDTO dto);
-    /**
-     * Deletes a product by name.
-     *
-     * @param name the product name to delete
-     */
-    void deleteProductByName(String name);
+    ProductResponseDTO updateProductById(Long id, ProductUpdateDTO dto);
+
+
+    void deleteProductById(Long id);
 }

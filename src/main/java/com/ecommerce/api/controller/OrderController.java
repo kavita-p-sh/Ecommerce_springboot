@@ -4,6 +4,8 @@ import com.ecommerce.api.dto.OrderRequestDTO;
 import com.ecommerce.api.dto.OrderResponseDTO;
 import com.ecommerce.api.service.OrderService;
 import com.ecommerce.api.util.AppConstants;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,17 +24,20 @@ import java.util.List;
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name="Order Controller",description = "APIs for managing Orders")
 public class OrderController {
 
     private final OrderService orderService;
 
     /**
      * create a new order
-     * @param
+     * @param request contains order details such as products, quantity.
      * @return order detail
      */
     @PostMapping
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN})
+    @Operation(summary = "Create order",
+            description = "Creates a new order with products and quantity.")
     public ResponseEntity<OrderResponseDTO> createOrder(
             @Valid @RequestBody OrderRequestDTO request) {
 
@@ -59,6 +64,8 @@ public class OrderController {
      */
     @GetMapping
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
+    @Operation(summary = "Get Orders",
+               description ="Fetch orders with filters like status,user, amount and quantity.Admin or Manager can view all orders, users can view their own orders only." )
     public ResponseEntity<List<OrderResponseDTO>> getOrders(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String createdBy,
@@ -75,12 +82,14 @@ public class OrderController {
     }
 
     /**
-     * cacel order by id
+     * cancel order by id
      * @param orderId id of order
      * @return updated order after cancellation
      */
     @PutMapping("/cancel/{orderId}")
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
+    @Operation(summary = "Cancel Order",
+               description = "Cancel an order by ID,Users can cancel their own orders ,Admins can cancel any order if user unable")
     public ResponseEntity<OrderResponseDTO> cancelOrder(@PathVariable Long orderId) {
         log.warn("Cancelling order with id {}", orderId);
 

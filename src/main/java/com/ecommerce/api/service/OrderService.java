@@ -49,10 +49,9 @@ public interface OrderService {
 
     /**
      * fetch orders of current logged-in User
-     * @return
+     * @return list of orders belonging to the currently logged-in user
      */
     List<OrderResponseDTO> getOrdersByUser();
-
     /**
      * Cancels an Order  by id
      * @param orderId order id
