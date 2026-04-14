@@ -26,6 +26,7 @@ ________________________________________________________________________________
 
 Architecture
 The application follows a layered architecture:
+
 Controller → Service → Repository → Database
 ___________________________________________________________________________________________________________
 
@@ -58,13 +59,16 @@ src/main/resources/
 ├── data.sql
 ___________________________________________________________________________________________________________
 
-Setup Instructions 
-Create Database
-CREATE DATABASE ecommerce_db;
+Setup Instructions
+Database Setup (MySQL)
+
+Create a database before running the application:
+
+CREATE DATABASE ecom_db;
 ___________________________________________________________________________________________________________
 Configure application.properties
 
-spring.datasource.url=jdbc:mysql://localhost:3306/ecommerce_db
+spring.datasource.url=jdbc:mysql://localhost:3306/ecom_db
 spring.datasource.username=your_username
 spring.datasource.password=your_password
 
@@ -73,6 +77,12 @@ spring.jpa.show-sql=true
 
 JWT Configuration
 jwt.secret=your_secret_key
+## JWT Secret Key
+For local development, generate a Base64-encoded 256-bit secret key before running the application.
+Example command:
+
+openssl rand -base64 32
+
 jwt.expiration=3600000
 
 Redis Configuration
@@ -89,24 +99,39 @@ Register or Login user
 Receive JWT token
 Use token in headers: Authorization: Bearer <your_token>
 ___________________________________________________________________________________________________________
+Swagger / API Documentation
+Swagger is integrated for API documentation and testing.
+
+After starting the application, open:
+Swagger UI:
+http://localhost:8094/swagger-ui/index.html
+OpenAPI Docs:
+http://localhost:8094/v3/api-docs
+
+View all APIs
+Test endpoints directly
+Check request/response formats
+___________________________________________________________________________________________________________
 
 Main APIs
 Auth
-POST /api/auth/register
-POST /api/auth/login
+POST /auth/register
+POST /auth/login
 ___________________________________________________________________________________________________________
 
 Users
 GET /api/users
 GET /api/users/profile
+PUT /api/users
 PUT /api/users/profile
+DELETE /api/users/{username}
 ___________________________________________________________________________________________________________
 
 Products
 POST /api/products
 GET /api/products
-PUT /api/products/{name}
-DELETE /api/products/{name}
+PUT /api/products
+DELETE /api/products/{id}
 ___________________________________________________________________________________________________________
 
 Orders
