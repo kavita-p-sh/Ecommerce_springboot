@@ -63,10 +63,20 @@ Setup Instructions
 Database Setup (MySQL)
 
 Create a database before running the application:
-
 CREATE DATABASE ecom_db;
+
+Linux / Mac
+export DB_USERNAME=your_db_user
+export DB_PASSWORD=your_db_password
+export JWT_SECRET=$(openssl rand -base64 32)
+
+Windows (CMD)
+Set Environment Variables
+set DB_USERNAME=your_db_user
+set DB_PASSWORD=your_db_password
+set JWT_SECRET=your_secret_key
 ___________________________________________________________________________________________________________
-Configure application.properties
+## Configure application.properties
 
 spring.datasource.url=jdbc:mysql://localhost:3306/ecom_db
 
@@ -77,14 +87,12 @@ spring.datasource.password=${DB_PASSWORD}
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.show-sql=true
 
-
 # JWT secret (256-bit Base64 key)
 JWT Configuration
 jwt.secret=${JWT_SECRET}
 jwt.expiration=3600000
 ## JWT Secret Key
 For local development, generate a Base64-encoded 256-bit secret key before running the application.
-
 
 spring.redis.host=localhost
 spring.redis.port=6379
