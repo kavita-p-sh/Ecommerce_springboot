@@ -53,7 +53,7 @@ class AuthControllerTest{
 
         ResponseEntity<UserResponseDTO> result = authController.register(request);
 
-        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(HttpStatus.CREATED, result.getStatusCode());
         assertEquals("RamPatel", result.getBody().getUsername());
         verify(authService).register(request);
     }
@@ -82,7 +82,7 @@ class AuthControllerTest{
      *
      */
     @Test
-    void register_DuplicateUSer() {
+    void register_DuplicateUser() {
         RegisterRequestDTO request = new RegisterRequestDTO();
         request.setUsername("RamPatel");
 

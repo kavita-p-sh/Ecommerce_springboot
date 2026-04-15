@@ -138,12 +138,14 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException(AppConstants.PRODUCT_NOT_FOUND + id));
 
-        if (!dto.getName().equals(product.getName()) && productRepository.existsByName(dto.getName())) {
-            throw new BadRequestException(AppConstants.PRODUCT_ALREADY_EXISTS);
-        }
-
         if (StringUtils.hasText(dto.getName())) {
-            product.setName(dto.getName().trim());
+            String newName = dto.getName().trim();
+
+            if (!newName.equals(product.getName()) && productRepository.existsByName(newName)) {
+                throw new BadRequestException(AppConstants.PRODUCT_ALREADY_EXISTS);
+            }
+
+            product.setName(newName);
         }
 
         if (StringUtils.hasText(dto.getDescription())) {

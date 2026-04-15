@@ -10,7 +10,6 @@ import com.ecommerce.api.entity.OrderStatusEntity;
 import com.ecommerce.api.entity.ProductEntity;
 import com.ecommerce.api.entity.UserEntity;
 import com.ecommerce.api.enums.OrderStatus;
-import com.ecommerce.api.exception.BadRequestException;
 import com.ecommerce.api.exception.ResourceNotFoundException;
 import com.ecommerce.api.mapper.OrderMapper;
 import com.ecommerce.api.repository.OrderItemRepository;
@@ -18,6 +17,7 @@ import com.ecommerce.api.repository.OrderRepository;
 import com.ecommerce.api.repository.OrderStatusRepository;
 import com.ecommerce.api.repository.ProductRepository;
 import com.ecommerce.api.repository.UserRepository;
+import com.ecommerce.api.service.OrderService;
 import com.ecommerce.api.util.AppConstants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,8 +85,11 @@ class OrderServiceImplTest {
     @Mock
     private OrderMapper orderMapper;
 
+    @Mock
+    private OrderService self;
+
     /**
-     * Instance of OrderServiceImpl with all mocked dependencies injected.
+      OrderServiceImpl with mocked dependencies injected.
      */
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -177,7 +180,7 @@ class OrderServiceImplTest {
         BigDecimal max = BigDecimal.valueOf(5000);
 
         when(orderRepository.findByTotalAmountBetween(min, max)).thenReturn(List.of(order));
-        when(orderItemRepository.findByOrder(order)).thenReturn(List.of());
+        when(orderItemRepository.findByOrderIn(anyList())).thenReturn(List.of());
         when(orderMapper.toDTO(order, List.of())).thenReturn(responseDTO);
 
         List<OrderResponseDTO> result =
@@ -196,7 +199,7 @@ class OrderServiceImplTest {
         OrderResponseDTO responseDTO = new OrderResponseDTO();
 
         when(orderRepository.findByTotalQuantityGreaterThanEqual(2)).thenReturn(List.of(order));
-        when(orderItemRepository.findByOrder(order)).thenReturn(List.of());
+        when(orderItemRepository.findByOrderIn(anyList())).thenReturn(List.of());
         when(orderMapper.toDTO(order, List.of())).thenReturn(responseDTO);
 
         List<OrderResponseDTO> result =
@@ -212,20 +215,19 @@ class OrderServiceImplTest {
      */
     @Test
     void returnsAllOrders_admin() {
-        OrderEntity order = new OrderEntity();
         OrderResponseDTO responseDTO = new OrderResponseDTO();
 
         when(loggedInUserServiceImpl.getUsername()).thenReturn("admin");
         when(loggedInUserServiceImpl.getRole()).thenReturn(AppConstants.ROLE_ADMIN);
-        when(orderRepository.findAll()).thenReturn(List.of(order));
-        when(orderItemRepository.findByOrder(order)).thenReturn(List.of());
-        when(orderMapper.toDTO(order, List.of())).thenReturn(responseDTO);
 
+        when(self.getAllOrders()).thenReturn(List.of(responseDTO));
         List<OrderResponseDTO> result =
                 orderService.getOrders(null, null, null, null, null);
 
         assertEquals(1, result.size());
-        verify(orderRepository).findAll();
+        assertEquals(responseDTO, result.get(0));
+
+        verify(self).getAllOrders();
     }
 
     /**
@@ -234,31 +236,19 @@ class OrderServiceImplTest {
      */
     @Test
     void getOrders_normalUser() {
-        String username = "ramPatel";
-
-        LoggedInUserDTO currentUser = new LoggedInUserDTO(username, AppConstants.ROLE_USER);
-
-        UserEntity user = new UserEntity();
-        user.setUsername(username);
-
-        OrderEntity order = new OrderEntity();
-        order.setUser(user);
-
         OrderResponseDTO responseDTO = new OrderResponseDTO();
 
-        when(loggedInUserServiceImpl.getUsername()).thenReturn(username);
+        when(loggedInUserServiceImpl.getUsername()).thenReturn("ramPatel");
         when(loggedInUserServiceImpl.getRole()).thenReturn(AppConstants.ROLE_USER);
-        when(loggedInUserServiceImpl.getCurrentUser()).thenReturn(currentUser);
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
-        when(orderRepository.findByUser(user)).thenReturn(List.of(order));
-        when(orderItemRepository.findByOrder(order)).thenReturn(List.of());
-        when(orderMapper.toDTO(order, List.of())).thenReturn(responseDTO);
 
+        when(self.getOrdersByUser()).thenReturn(List.of(responseDTO));
         List<OrderResponseDTO> result =
                 orderService.getOrders(null, null, null, null, null);
 
         assertEquals(1, result.size());
-        verify(orderRepository).findByUser(user);
+        assertEquals(responseDTO, result.get(0));
+
+        verify(self).getOrdersByUser();
     }
 
     /**
@@ -270,7 +260,7 @@ class OrderServiceImplTest {
         OrderResponseDTO responseDTO = new OrderResponseDTO();
 
         when(orderRepository.findAll()).thenReturn(List.of(order));
-        when(orderItemRepository.findByOrder(order)).thenReturn(List.of());
+        when(orderItemRepository.findByOrderIn(anyList())).thenReturn(List.of());
         when(orderMapper.toDTO(order, List.of())).thenReturn(responseDTO);
 
         List<OrderResponseDTO> result = orderService.getAllOrders();
@@ -286,29 +276,19 @@ class OrderServiceImplTest {
     @Test
     void getOrdersByUser_success() {
         String username = "ramPatel";
-
         LoggedInUserDTO currentUser = new LoggedInUserDTO(username, AppConstants.ROLE_USER);
-
-        UserEntity user = new UserEntity();
-        user.setUsername(username);
-
-        OrderEntity order = new OrderEntity();
-        order.setUser(user);
 
         OrderResponseDTO responseDTO = new OrderResponseDTO();
 
         when(loggedInUserServiceImpl.getCurrentUser()).thenReturn(currentUser);
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
-        when(orderRepository.findByUser(user)).thenReturn(List.of(order));
-        when(orderItemRepository.findByOrder(order)).thenReturn(List.of());
-        when(orderMapper.toDTO(order, List.of())).thenReturn(responseDTO);
-
+        when(self.getOrdersByUsername(username)).thenReturn(List.of(responseDTO));
         List<OrderResponseDTO> result = orderService.getOrdersByUser();
 
         assertEquals(1, result.size());
-        verify(orderRepository).findByUser(user);
-    }
+        assertEquals(responseDTO, result.get(0));
 
+        verify(self).getOrdersByUsername(username);
+    }
     /**
      * Tests successful order cancellation.
      */

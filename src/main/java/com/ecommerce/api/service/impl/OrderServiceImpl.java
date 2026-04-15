@@ -257,10 +257,21 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public List<OrderResponseDTO> getOrdersByUser() {
         String username = loggedInUserService.getCurrentUser().getUsername();
+        return self.getOrdersByUsername(username);
+
+    }
+    /**
+     * Fetches orders for the given username.
+     *
+     * @param username logged-in username
+     * @return list of user-specific orders
+     */
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "ordersByUser", key = "'user_' + #username")
+    public List<OrderResponseDTO> getOrdersByUsername(String username) {
         UserEntity user = getUser(username);
-
         return mapOrdersToDTO(orderRepository.findByUser(user));
-
     }
 
     /**

@@ -18,6 +18,6 @@ public class ProductUpdateDTO {
     @Digits(integer = 10, fraction = 2, message = "{product.price.format}")
     private BigDecimal price;
 
-    @Positive(message = "{product.quantity.positive}")
+    @Min(value=0,message = "{product.quantity.min}")
     private Integer quantity;
 }

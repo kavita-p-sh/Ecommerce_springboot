@@ -24,7 +24,7 @@ public class ProductRequestDTO {
         private BigDecimal price;
 
         @NotNull(message = "{product.quantity.required}")
-        @Min(value = 0, message = "{product.quantity.required}")
+        @Min(value = 0, message = "{product.quantity.min}")
         private Integer quantity;
 
   }

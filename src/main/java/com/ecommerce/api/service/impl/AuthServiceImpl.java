@@ -61,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("Register user: {}", dto.getUsername());
 
-        UserResponseDTO response = userService.registerUser(dto);
-        return response;
+        return userService.registerUser(dto);
+
     }
 }
