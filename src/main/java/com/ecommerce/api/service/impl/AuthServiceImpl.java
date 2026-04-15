@@ -43,9 +43,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("Login request for user: {}" , dto.getUsername());
 
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        dto.getUsername(),
-                        dto.getPassword())
+                new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword())
         );
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(dto.getUsername());
@@ -63,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("Register user: {}", dto.getUsername());
 
-        UserResponseDTO user = userService.registerUser(dto);
-        return user;
+        UserResponseDTO response = userService.registerUser(dto);
+        return response;
     }
 }

@@ -11,6 +11,7 @@ import com.ecommerce.api.exception.ResourceNotFoundException;
 import com.ecommerce.api.mapper.UserMapper;
 import com.ecommerce.api.repository.RoleRepository;
 import com.ecommerce.api.repository.UserRepository;
+import com.ecommerce.api.service.LoggedInUserService;
 import com.ecommerce.api.service.UserService;
 import com.ecommerce.api.util.AppConstants;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
-    private final LoggedInUserServiceImpl loggedInUserServiceImpl;
+    private final LoggedInUserService loggedInUserService;
     private final UserMapper userMapper;
 
 
@@ -152,7 +153,7 @@ public class UserServiceImpl implements UserService {
             return requestedRole;
         }
 
-        String loggedInUsername = loggedInUserServiceImpl.getUsername();
+        String loggedInUsername = loggedInUserService.getUsername();
         log.info("Logged-in user has role assignment request: {}", loggedInUsername);
 
         UserEntity loggedInUser = userRepository.findByUsername(loggedInUsername)
@@ -270,7 +271,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponseDTO getMyProfile() {
-        String username = loggedInUserServiceImpl.getUsername();
+        String username = loggedInUserService.getUsername();
 
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
@@ -335,7 +336,7 @@ public class UserServiceImpl implements UserService {
             evict = {@CacheEvict(cacheNames = "users", key = "'allUsers'")}
     )
     public UserResponseDTO updateMyProfile(UpdateUserDTO dto) {
-        String username = loggedInUserServiceImpl.getUsername();
+        String username = loggedInUserService.getUsername();
 
         UserEntity existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() ->

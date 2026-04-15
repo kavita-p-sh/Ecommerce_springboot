@@ -3,6 +3,7 @@ package com.ecommerce.api.controller;
 import com.ecommerce.api.dto.LoginRequestDTO;
 import com.ecommerce.api.dto.RegisterRequestDTO;
 import com.ecommerce.api.dto.UserResponseDTO;
+import com.ecommerce.api.exception.BadRequestException;
 import com.ecommerce.api.service.AuthService;
 import com.ecommerce.api.util.AppConstants;
 import org.junit.jupiter.api.Test;
@@ -10,9 +11,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,11 +53,50 @@ class AuthControllerTest{
 
         ResponseEntity<UserResponseDTO> result = authController.register(request);
 
-        assertEquals(201, result.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("RamPatel", result.getBody().getUsername());
         verify(authService).register(request);
     }
 
+    /**
+     * Tests Register Data is valid or not.
+     */
+    @Test
+    void register_invalidData() {
+        RegisterRequestDTO request = new RegisterRequestDTO();
+        request.setUsername("RamPatel");
+
+        when(authService.register(request))
+                .thenThrow(new BadRequestException("Invalid registration data"));
+
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> authController.register(request)
+        );
+
+        assertEquals("Invalid registration data", exception.getMessage());
+        verify(authService).register(request);
+    }
+
+    /**
+     *
+     */
+    @Test
+    void register_DuplicateUSer() {
+        RegisterRequestDTO request = new RegisterRequestDTO();
+        request.setUsername("RamPatel");
+
+        when(authService.register(request))
+                .thenThrow(new BadRequestException("Username already exists"));
+
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> authController.register(request)
+        );
+
+        assertEquals("Username already exists", exception.getMessage());
+        verify(authService).register(request);
+    }
     /**
      * Successfully login
      * HTTP status is 200 ok
@@ -70,7 +112,7 @@ class AuthControllerTest{
 
         ResponseEntity<String> result = authController.login(request);
 
-        assertEquals(200, result.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("mock-token", result.getBody());
 
 
@@ -79,8 +121,27 @@ class AuthControllerTest{
     }
 
     /**
+     * Tests Login Credential is Valid.
+     */
+    @Test
+    void login_invalidCredentials() {
+        LoginRequestDTO request = new LoginRequestDTO();
+        request.setUsername("RamPatel");
+
+        when(authService.login(request))
+                .thenThrow(new BadRequestException("Invalid username or password"));
+
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> authController.login(request)
+        );
+
+        assertEquals("Invalid username or password", exception.getMessage());
+        verify(authService).login(request);
+    }
+    /**
      * Test Logout
-     * -HTTP status is 200 (OK)
+     * -HTTP status is (OK)
      * -Logout success message is returned
      */
 
@@ -88,7 +149,7 @@ class AuthControllerTest{
     void logout_success() {
         ResponseEntity<String> result = authController.logout();
 
-        assertEquals(200, result.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(AppConstants.LOGOUT_SUCCESS, result.getBody());
     }
 

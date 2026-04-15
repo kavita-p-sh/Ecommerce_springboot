@@ -2,6 +2,7 @@ package com.ecommerce.api.controller;
 
 import com.ecommerce.api.dto.UpdateUserDTO;
 import com.ecommerce.api.dto.UserResponseDTO;
+import com.ecommerce.api.exception.ResourceNotFoundException;
 import com.ecommerce.api.service.UserService;
 import com.ecommerce.api.util.AppConstants;
 import org.junit.jupiter.api.Test;
@@ -9,12 +10,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -36,7 +38,7 @@ class UserControllerTest{
      * Tests fetching users with email filter.
      */
     @Test
-    void getUserSuccess(){
+    void getUser_WithEmail_success(){
         UserResponseDTO response= new UserResponseDTO();
         response.setUsername("RamPatel");
         response.setEmail("ram3413@gmail.com");
@@ -44,11 +46,12 @@ class UserControllerTest{
         when(userService.getUsers(null, "ram3413@gmail.com", null)).thenReturn(List.of(response));
 
         ResponseEntity<List<UserResponseDTO>> result = userController.getUsers(null, "ram3413@gmail.com", null);
-        assertEquals(200, result.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("RamPatel", result.getBody().get(0).getUsername());
         assertEquals("ram3413@gmail.com", result.getBody().get(0).getEmail());
         assertEquals("9378478949", result.getBody().get(0).getPhoneNumber());
     }
+
 
     /**
      * Tests fetching all users without any filters.
@@ -74,6 +77,24 @@ class UserControllerTest{
         assertEquals(2, result.getBody().size());
         assertEquals("RamPatel", result.getBody().get(0).getUsername());
     }
+
+    /**
+     * Tests service exception while fetching users.
+     */
+    @Test
+    void getUsers_notFound_throwsResourceNotFoundException() {
+        when(userService.getUsers(null, "email1234@gmail.com", null))
+                .thenThrow(new ResourceNotFoundException("User not found"));
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> userController.getUsers(null, "email124@gmail.com", null)
+        );
+
+        assertEquals("User not found", exception.getMessage());
+        verify(userService).getUsers(null, "email124@gmail.com", null);
+    }
+
 
     /**
      * Tests Get my profile of the current user.
@@ -139,6 +160,25 @@ class UserControllerTest{
         assertEquals(String.format(AppConstants.USER_DELETED_SUCCESS, username), response.getBody());
 
         verify(userService, times(1)).deleteUserByUsername(username);
+    }
+
+    /**
+     * Tests delete failure when user does not exist.
+     */
+    @Test
+    void deleteUser_notFound() {
+        String username = "UnknownUser";
+
+        doThrow(new ResourceNotFoundException("User not found with username: " + username))
+                .when(userService).deleteUserByUsername(username);
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> userController.deleteUser(username)
+        );
+
+        assertEquals("User not found with username: " + username, exception.getMessage());
+        verify(userService).deleteUserByUsername(username);
     }
 
 

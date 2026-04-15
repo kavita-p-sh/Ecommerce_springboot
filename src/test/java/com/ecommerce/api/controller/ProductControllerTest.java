@@ -17,8 +17,7 @@ import org.springframework.http.ResponseEntity;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -85,6 +84,22 @@ class ProductControllerTest{
         verify(productService).addProduct(productRequestDTO);
 
     }
+    /**
+     *  Tests create products failure
+     */
+    @Test
+    void createProduct_failure() {
+        when(productService.addProduct(productRequestDTO))
+                .thenThrow(new RuntimeException("Product already exists"));
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> productController.createProduct(productRequestDTO)
+        );
+
+        assertEquals("Product already exists", exception.getMessage());
+        verify(productService).addProduct(productRequestDTO);
+    }
 
     /**
      * Tests fetching products with filters.
@@ -109,6 +124,24 @@ class ProductControllerTest{
 
 
     }
+
+    /**
+     * get Products failure
+     */
+    @Test
+    void getProducts_failure() {
+        when(productService.getProducts("Laptop", new BigDecimal("55000"), 10))
+                .thenThrow(new RuntimeException("Invalid filter"));
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> productController.getProducts("Laptop", new BigDecimal("55000"), 10)
+        );
+
+        assertEquals("Invalid filter", exception.getMessage());
+        verify(productService).getProducts("Laptop", new BigDecimal("55000"), 10);
+    }
+
 
     /**
      * Tests updating an existing product.
@@ -140,6 +173,22 @@ class ProductControllerTest{
     }
 
     /**
+     * update product failure
+     */
+    @Test
+    void updateProduct_notFound() {
+        when(productService.updateProductById(1L, productUpdateDTO))
+                .thenThrow(new RuntimeException("Product not found"));
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> productController.updateProduct(1L, productUpdateDTO)
+        );
+
+        assertEquals("Product not found", exception.getMessage());
+        verify(productService).updateProductById(1L, productUpdateDTO);
+    }
+    /**
      * Tests Deleting product by ID
      */
 
@@ -153,6 +202,23 @@ class ProductControllerTest{
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(AppConstants.PRODUCT_DELETED_SUCCESS, response.getBody());
 
+        verify(productService).deleteProductById(1L);
+    }
+
+    /**
+     * Delete product not found exception
+     */
+    @Test
+    void deleteProduct_notFound() {
+        doThrow(new RuntimeException("Product not found"))
+                .when(productService).deleteProductById(1L);
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> productController.deleteProduct(1L)
+        );
+
+        assertEquals("Product not found", exception.getMessage());
         verify(productService).deleteProductById(1L);
     }
 }

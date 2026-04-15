@@ -7,6 +7,7 @@ import com.ecommerce.api.enums.OrderStatus;
 import com.ecommerce.api.exception.BadRequestException;
 import com.ecommerce.api.exception.ResourceNotFoundException;
 import com.ecommerce.api.mapper.OrderMapper;
+import com.ecommerce.api.service.LoggedInUserService;
 import com.ecommerce.api.service.OrderService;
 import com.ecommerce.api.util.AppConstants;
 import com.ecommerce.api.entity.*;
@@ -29,12 +30,13 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private final UserRepository userRepository;
-    private final LoggedInUserServiceImpl loggedInUserServiceImpl;
+    private final LoggedInUserService loggedInUserService;
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final OrderStatusRepository orderStatusRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderMapper orderMapper;
+    private final OrderService self;
 
     /**
      * Creates a new order for the logged-in user.
@@ -47,7 +49,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @CacheEvict(value = {"orders", "ordersByUser"}, allEntries = true)
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
-        String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
+        String username = loggedInUserService.getCurrentUser().getUsername();
         log.info("Creating order for user: {}", username);
         UserEntity user = getUser(username);
 
@@ -130,6 +132,22 @@ public class OrderServiceImpl implements OrderService {
                 })
                 .toList();
     }
+    private Map<Long, List<OrderItemEntity>> getOrderItemsMap(List<OrderEntity> orders) {
+        List<OrderItemEntity> orderItems = orderItemRepository.findByOrderIn(orders);
+
+        return orderItems.stream()
+                .collect(Collectors.groupingBy(item -> item.getOrder().getOrderId()));
+    }
+    private List<OrderResponseDTO> mapOrdersToDTO(List<OrderEntity> orders) {
+        Map<Long, List<OrderItemEntity>> orderItemsMap = getOrderItemsMap(orders);
+
+        return orders.stream()
+                .map(order -> orderMapper.toDTO(
+                        order,
+                        orderItemsMap.getOrDefault(order.getOrderId(), Collections.emptyList())
+                ))
+                .toList();
+    }
 
     /**
      * Fetches orders based on optional filters like status, user,
@@ -149,41 +167,33 @@ public class OrderServiceImpl implements OrderService {
                 status, createdBy, minAmount, maxAmount, minQuantity);
 
         if (status != null && !status.isBlank()) {
-            return orderRepository.findByStatus_StatusName(status)
-                    .stream()
-                    .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
-                    .toList();
+            return mapOrdersToDTO(orderRepository.findByStatus_StatusName(status));
+
         }
 
         if (createdBy != null && !createdBy.isBlank()) {
-            return orderRepository.findByCreatedBy(createdBy)
-                    .stream()
-                    .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
-                    .toList();
+            return mapOrdersToDTO(orderRepository.findByCreatedBy(createdBy));
+
         }
 
         if (minAmount != null && maxAmount != null) {
-            return orderRepository.findByTotalAmountBetween(minAmount, maxAmount)
-                    .stream()
-                    .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
-                    .toList();
+            return mapOrdersToDTO(orderRepository.findByTotalAmountBetween(minAmount, maxAmount));
+
         }
 
         if (minQuantity != null) {
-            return orderRepository.findByTotalQuantityGreaterThanEqual(minQuantity)
-                    .stream()
-                    .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
-                    .toList();
+            return mapOrdersToDTO(orderRepository.findByTotalQuantityGreaterThanEqual(minQuantity));
+
         }
 
-        String username = loggedInUserServiceImpl.getUsername();
-        String role = loggedInUserServiceImpl.getRole();
+        String username = loggedInUserService.getUsername();
+        String role = loggedInUserService.getRole();
 
         if (AppConstants.ROLE_ADMIN.equals(role) || AppConstants.ROLE_MANAGER.equals(role)) {
-            return getAllOrders();
+            return self.getAllOrders();
         }
 
-        return getOrdersByUser();
+        return self.getOrdersByUser();
     }
 
     /**
@@ -235,29 +245,22 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Cacheable(value = "orders", key = "'AllOrders'")
     public List<OrderResponseDTO> getAllOrders() {
-        return orderRepository.findAll()
-                .stream()
-                .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
-                .toList();
+        return mapOrdersToDTO(orderRepository.findAll());
+
     }
 
     /**
      * Fetches orders of currently logged-in user.
-     * Uses cache based on username.
-     *
      * @return list of user-specific orders
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "ordersByUser", key = "#root.target.loggedInUserServiceImpl.getCurrentUser().getUsername()")
     public List<OrderResponseDTO> getOrdersByUser() {
-        String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
+        String username = loggedInUserService.getCurrentUser().getUsername();
         UserEntity user = getUser(username);
 
-        return orderRepository.findByUser(user)
-                .stream()
-                .map(order -> orderMapper.toDTO(order, orderItemRepository.findByOrder(order)))
-                .toList();
+        return mapOrdersToDTO(orderRepository.findByUser(user));
+
     }
 
     /**
@@ -273,8 +276,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @CacheEvict(value = {"orders", "ordersByUser"}, allEntries = true)
     public OrderResponseDTO cancelOrder(Long orderId) {
-        String username = loggedInUserServiceImpl.getCurrentUser().getUsername();
-        boolean isAdmin = loggedInUserServiceImpl.isAdmin();
+        String username = loggedInUserService.getCurrentUser().getUsername();
+        boolean isAdmin = loggedInUserService.isAdmin();
 
 
         OrderEntity order = orderRepository.findById(orderId)

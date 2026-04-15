@@ -3,9 +3,6 @@ package com.ecommerce.api.service;
 import com.ecommerce.api.dto.ProductRequestDTO;
 import com.ecommerce.api.dto.ProductResponseDTO;
 import com.ecommerce.api.dto.ProductUpdateDTO;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -54,6 +51,8 @@ public interface ProductService {
      */
     ProductResponseDTO updateProductById(Long id, ProductUpdateDTO dto);
 
-
+    /** Deletes a product by its ID.
+     *  @param id the product ID to delete
+     *  */
     void deleteProductById(Long id);
 }

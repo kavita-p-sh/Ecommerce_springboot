@@ -3,7 +3,6 @@ package com.ecommerce.api.service.impl;
 import com.ecommerce.api.dto.LoginRequestDTO;
 import com.ecommerce.api.dto.RegisterRequestDTO;
 import com.ecommerce.api.dto.UserResponseDTO;
-import com.ecommerce.api.mapper.UserMapper;
 import com.ecommerce.api.security.JwtUtil;
 import com.ecommerce.api.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,7 @@ import static org.mockito.Mockito.when;
  * - user registration
  */
 @ExtendWith(MockitoExtension.class)
-public class AuthSeviceImplTest {
+public class AuthServiceImplTest {
 
     /**
      * Mocked AuthenticationManager.
