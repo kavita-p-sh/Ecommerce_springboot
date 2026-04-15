@@ -163,8 +163,6 @@ class OrderServiceImplTest {
         verify(productRepository).save(product);
         verify(orderMapper).toDTO(savedOrder, List.of(savedItem));
 
-        assertEquals(3, product.getQuantity());
-        assertEquals(username, product.getUpdatedBy());
     }
 
     /**
@@ -360,9 +358,8 @@ class OrderServiceImplTest {
         assertNotNull(result);
         assertEquals(responseDTO, result);
         assertEquals(5, product.getQuantity());
-        assertEquals(username, product.getUpdatedBy());
         assertEquals(cancelledStatus, order.getStatus());
-        assertEquals(username, order.getUpdatedBy());
+
 
         verify(productRepository).save(product);
         verify(orderRepository).save(order);

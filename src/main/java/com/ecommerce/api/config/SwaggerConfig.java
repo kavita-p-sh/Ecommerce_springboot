@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfig {
 
     /**
-     * Creates and Config the OpenAPI bean
+     * Creates and configures the OpenAPI bean with JWT Bearer authentication
      * Configuration:
      * -defines a security scheme name "bearerAuth"
      * - Use HTTP Bearer authentication
@@ -25,7 +25,7 @@ public class SwaggerConfig {
      * @return configured OpenApi instance with JWT security
      */
     @Bean
-    public OpenAPI openAPI()
+    public OpenAPI CustomOpenAPI()
     {
         return new OpenAPI()
 

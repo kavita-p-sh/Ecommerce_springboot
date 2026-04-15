@@ -89,7 +89,7 @@ public class OrderController {
     @PutMapping("/cancel/{orderId}")
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
     @Operation(summary = "Cancel Order",
-               description = "Cancel an order by ID,Users can cancel their own orders ,Admins can cancel any order if user unable")
+               description = "Cancel an order by ID,Users can cancel their own orders ,Admins can cancel any order on behalf of a user if needed")
     public ResponseEntity<OrderResponseDTO> cancelOrder(@PathVariable Long orderId) {
         log.warn("Cancelling order with id {}", orderId);
 

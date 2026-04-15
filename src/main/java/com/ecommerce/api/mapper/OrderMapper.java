@@ -33,6 +33,7 @@ public class OrderMapper {
         response.setCreatedBy(order.getCreatedBy());
         response.setCreatedTimestamp(order.getCreatedTimestamp());
         response.setUpdatedTimestamp(order.getUpdatedTimestamp());
+        response.setUpdatedBy(order.getUpdatedBy());
 
         response.setItems(mapOrderItemsToDTO(items));
 

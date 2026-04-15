@@ -28,6 +28,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final ProductService self;
 
     /**
      * Adds a new product to the system.
@@ -97,7 +98,7 @@ public class ProductServiceImpl implements ProductService {
                     .toList();
         }
 
-        return getAllProducts();
+        return self.getAllProducts();
     }
 
     /**
@@ -136,6 +137,10 @@ public class ProductServiceImpl implements ProductService {
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(AppConstants.PRODUCT_NOT_FOUND + id));
+
+        if (!dto.getName().equals(product.getName()) && productRepository.existsByName(dto.getName())) {
+            throw new BadRequestException(AppConstants.PRODUCT_ALREADY_EXISTS);
+        }
 
         if (StringUtils.hasText(dto.getName())) {
             product.setName(dto.getName().trim());

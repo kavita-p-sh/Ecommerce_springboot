@@ -26,6 +26,7 @@ public class ProductMapper {
         dto.setCreatedBy(product.getCreatedBy());
         dto.setCreatedTimestamp(product.getCreatedTimestamp());
         dto.setUpdatedBy(product.getUpdatedBy());
+        dto.setUpdatedTimestamp(product.getUpdatedTimestamp());
 
         return dto;
     }

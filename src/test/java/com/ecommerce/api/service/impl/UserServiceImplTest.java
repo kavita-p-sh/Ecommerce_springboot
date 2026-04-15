@@ -108,6 +108,7 @@ class UserServiceImplTest {
     void registerUser_usernameExists() {
         RegisterRequestDTO dto = new RegisterRequestDTO();
         dto.setUsername("ShriYadav");
+        dto.setRole(RoleName.USER);
 
         when(userRepository.existsByUsername("ShriYadav")).thenReturn(true);
 
