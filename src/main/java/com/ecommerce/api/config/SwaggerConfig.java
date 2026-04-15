@@ -25,7 +25,7 @@ public class SwaggerConfig {
      * @return configured OpenApi instance with JWT security
      */
     @Bean
-    public OpenAPI CustomOpenAPI()
+    public OpenAPI customOpenAPI()
     {
         return new OpenAPI()
 

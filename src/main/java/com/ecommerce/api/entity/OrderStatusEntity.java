@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * Entity for storing order status details (Placed, Pending, Delivered, Cancelled).
+ * Entity for storing order status details (PLACED, DELIVERED, CANCELLED).
  */
 @Entity
 @Table(name = "order_status")

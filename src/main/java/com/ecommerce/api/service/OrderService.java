@@ -3,6 +3,7 @@ package com.ecommerce.api.service;
 import com.ecommerce.api.dto.OrderRequestDTO;
 import com.ecommerce.api.dto.OrderResponseDTO;
 
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -52,6 +53,16 @@ public interface OrderService {
      * @return list of orders belonging to the currently logged-in user
      */
     List<OrderResponseDTO> getOrdersByUser();
+
+
+    /**
+     * Fetch orders for the given username.
+     *
+     * @param username username of the user
+     * @return list of orders belonging to the given user
+     */
+    List<OrderResponseDTO> getOrdersByUsername(String username);
+
     /**
      * Cancels an Order  by id
      * @param orderId order id

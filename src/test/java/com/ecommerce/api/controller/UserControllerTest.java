@@ -65,7 +65,7 @@ class UserControllerTest{
 
         UserResponseDTO user2 = new UserResponseDTO();
         user2.setUsername("ShyamVerma");
-        user2.setEmail("shyam@gmail.com");
+        user2.setEmail("shyam123@gmail.com");
 
         when(userService.getUsers(null, null, null))
                 .thenReturn(List.of(user1, user2));
@@ -73,7 +73,7 @@ class UserControllerTest{
         ResponseEntity<List<UserResponseDTO>> result =
                 userController.getUsers(null, null, null);
 
-        assertEquals(200, result.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(2, result.getBody().size());
         assertEquals("RamPatel", result.getBody().get(0).getUsername());
     }
@@ -88,13 +88,12 @@ class UserControllerTest{
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> userController.getUsers(null, "email124@gmail.com", null)
+                () -> userController.getUsers(null, "email1234@gmail.com", null)
         );
 
         assertEquals("User not found", exception.getMessage());
-        verify(userService).getUsers(null, "email124@gmail.com", null);
+        verify(userService).getUsers(null, "email1234@gmail.com", null);
     }
-
 
     /**
      * Tests Get my profile of the current user.
@@ -111,7 +110,7 @@ class UserControllerTest{
 
         ResponseEntity<UserResponseDTO> result = userController.getMyProfile();
 
-        assertEquals(200, result.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("RamPatel", result.getBody().getUsername());
         assertEquals("ram3413@gmail.com", result.getBody().getEmail());
         assertEquals("9378478949", result.getBody().getPhoneNumber());
@@ -137,7 +136,7 @@ class UserControllerTest{
 
         ResponseEntity<UserResponseDTO> response = userController.updateUser(dto);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("RamPatel", response.getBody().getUsername());
         assertEquals("newram@gmail.com", response.getBody().getEmail());
@@ -156,7 +155,7 @@ class UserControllerTest{
 
         ResponseEntity<String> response = userController.deleteUser(username);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(String.format(AppConstants.USER_DELETED_SUCCESS, username), response.getBody());
 
         verify(userService, times(1)).deleteUserByUsername(username);
