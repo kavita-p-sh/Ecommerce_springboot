@@ -130,14 +130,14 @@ ________________________________________________________________________________
 Products
 POST /api/products
 GET /api/products
-PUT /api/products
+PUT /api/products/{id}
 DELETE /api/products/{id}
 ___________________________________________________________________________________________________________
 
 Orders
 POST /api/orders
 GET /api/orders
-PUT /api/orders/{orderId}/cancel
+PUT /api/orders/cancel/{orderId}
 ___________________________________________________________________________________________________________
 
 Database Tables
