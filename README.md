@@ -69,25 +69,26 @@ ________________________________________________________________________________
 Configure application.properties
 
 spring.datasource.url=jdbc:mysql://localhost:3306/ecom_db
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+
+# Database credentials
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
 
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.show-sql=true
 
+
+# JWT secret (256-bit Base64 key)
 JWT Configuration
-jwt.secret=your_secret_key
+jwt.secret=${JWT_SECRET}
+jwt.expiration=3600000
 ## JWT Secret Key
 For local development, generate a Base64-encoded 256-bit secret key before running the application.
-Example command:
 
-openssl rand -base64 32
 
-jwt.expiration=3600000
-
-Redis Configuration
 spring.redis.host=localhost
 spring.redis.port=6379
+
 ___________________________________________________________________________________________________________
 
 Run Application
