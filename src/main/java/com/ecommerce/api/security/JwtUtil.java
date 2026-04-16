@@ -2,6 +2,7 @@ package com.ecommerce.api.security;
 
 import com.ecommerce.api.exception.ResourceNotFoundException;
 import com.ecommerce.api.util.AppConstants;
+import com.ecommerce.api.util.JwtConstant;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
@@ -105,7 +106,7 @@ public class JwtUtil {
      * Removes Bearer prefix from token.
      */
     private String getToken(String token) {
-        if (token != null && token.startsWith("Bearer ")) {
+        if (token != null && token.startsWith(JwtConstant.TOKEN_PREFIX)) {
             return token.substring(7);
         }
         return token;

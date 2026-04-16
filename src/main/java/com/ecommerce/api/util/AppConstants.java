@@ -67,4 +67,9 @@ public class AppConstants {
     public static final String ROLE_NOT_FOUND = "Role not found";
     public static final String INVALID_ROLE = "Invalid Role";
     public static final String ROLE_NOT_ASSIGNED = "No roles assigned to the user";
+
+
+
+
+    public static final String ANONYMOUS_USER = "anonymousUser";
 }

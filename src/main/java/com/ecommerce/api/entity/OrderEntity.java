@@ -12,7 +12,7 @@ import java.util.List;
  */
 
 @Entity
-@Table(name = "orders")
+@Table(name = "tb_orders")
 @Data
 public class OrderEntity extends BaseEntity {
 

@@ -89,7 +89,7 @@ class OrderServiceImplTest {
     private OrderService self;
 
     /**
-      OrderServiceImpl with mocked dependencies injected.
+     OrderServiceImpl with mocked dependencies injected.
      */
     @InjectMocks
     private OrderServiceImpl orderService;

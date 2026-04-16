@@ -7,7 +7,9 @@ import com.ecommerce.api.entity.OrderEntity;
 import com.ecommerce.api.entity.OrderItemEntity;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Mapper class for converting OrderEntity and OrderItemEntity
@@ -36,6 +38,7 @@ public class OrderMapper {
         response.setUpdatedBy(order.getUpdatedBy());
 
         response.setItems(mapOrderItemsToDTO(items));
+
 
         return response;
     }

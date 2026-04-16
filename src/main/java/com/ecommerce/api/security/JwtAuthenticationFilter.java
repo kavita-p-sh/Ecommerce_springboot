@@ -1,11 +1,14 @@
 package com.ecommerce.api.security;
 
+import com.ecommerce.api.exception.UnauthorizedException;
+import com.ecommerce.api.util.JwtConstant;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.engine.jdbc.spi.JdbcWrapper;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,10 +29,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
-    private static final List<String> PUBLIC_PATHS = List.of(
-            "/auth/login",
-            "/auth/register"
-    );
+    private static final List<String> PUBLIC_PATHS = JwtConstant.PUBLIC_PATHS;
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
@@ -44,9 +44,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
 
-        String header = request.getHeader("Authorization");
+        String header = request.getHeader(JwtConstant.HEADER);
 
-        if (header == null || !header.startsWith("Bearer ")) {
+        if (header == null || !header.startsWith(JwtConstant.TOKEN_PREFIX)) {
             log.warn("Authorization header missing or invalid");
             filterChain.doFilter(request, response);
             return;
@@ -77,6 +77,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         } catch (Exception e) {
             log.error("JWT validation failed for request to {}", request.getServletPath(), e);
+            throw new UnauthorizedException(JwtConstant.INVALID_TOKEN_MESSAGE);
+
         }
 
         filterChain.doFilter(request, response);

@@ -12,6 +12,7 @@ import com.ecommerce.api.service.OrderService;
 import com.ecommerce.api.util.AppConstants;
 import com.ecommerce.api.entity.*;
 import com.ecommerce.api.repository.*;
+import com.ecommerce.api.util.CacheConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -47,7 +48,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = {"orders", "ordersByUser"}, allEntries = true)
+    @CacheEvict(value = {CacheConstant.ORDERS,CacheConstant.ORDERS_BY_USER}, allEntries = true)
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
         String username = loggedInUserService.getCurrentUser().getUsername();
         log.info("Creating order for user: {}", username);
@@ -243,7 +244,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "orders", key = "'AllOrders'")
+    @Cacheable(value = CacheConstant.ORDERS, key = CacheConstant.ALL_ORDERS_KEY)
     public List<OrderResponseDTO> getAllOrders() {
         return mapOrdersToDTO(orderRepository.findAll());
 
@@ -268,7 +269,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "ordersByUser", key = "'user_' + #username")
+    @Cacheable(value = CacheConstant.ORDERS, key = CacheConstant.ORDERS_BY_USER_KEY)
     public List<OrderResponseDTO> getOrdersByUsername(String username) {
         UserEntity user = getUser(username);
         return mapOrdersToDTO(orderRepository.findByUser(user));
@@ -285,7 +286,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = {"orders", "ordersByUser"}, allEntries = true)
+    @CacheEvict(value = {CacheConstant.ORDERS, CacheConstant.ORDERS_BY_USER}, allEntries = true)
     public OrderResponseDTO cancelOrder(Long orderId) {
         String username = loggedInUserService.getCurrentUser().getUsername();
         boolean isAdmin = loggedInUserService.isAdmin();

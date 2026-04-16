@@ -6,6 +6,10 @@ import com.ecommerce.api.dto.UserResponseDTO;
 import com.ecommerce.api.service.AuthService;
 import com.ecommerce.api.util.AppConstants;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
@@ -35,6 +39,12 @@ public class AuthController {
      */
     @PostMapping("/register")
     @Operation(summary = "Register user",description = "Registers a new user")
+
+    @ApiResponses({@ApiResponse(responseCode = "201", description = "User registered successfully",
+                    content = @Content(schema = @Schema(implementation = UserResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "409", description = "User already exists")
+    })
     public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody RegisterRequestDTO dto) {
         log.info("Register request received for username: {}", dto.getUsername());
 
@@ -50,6 +60,11 @@ public class AuthController {
      */
     @PostMapping("/login")
     @Operation(summary = "Login user" ,description = "Authenticates user and returns JWT token")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Login successful"),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
     public ResponseEntity<String> login(@Valid @RequestBody LoginRequestDTO dto) {
         log.info("Login request for username: {}", dto.getUsername());
 
@@ -68,6 +83,9 @@ public class AuthController {
      */
     @PostMapping("/logout")
     @Operation(summary = "Logout user", description = "Logs out the authenticated user")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Logout successful"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
     public ResponseEntity<String> logout() {
 

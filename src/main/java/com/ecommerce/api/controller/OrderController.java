@@ -5,6 +5,10 @@ import com.ecommerce.api.dto.OrderResponseDTO;
 import com.ecommerce.api.service.OrderService;
 import com.ecommerce.api.util.AppConstants;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
@@ -38,6 +42,15 @@ public class OrderController {
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN})
     @Operation(summary = "Create order",
             description = "Creates a new order with products and quantity.")
+    @ApiResponses({ @ApiResponse(responseCode = "201", description = "Order created successfully",
+                    content = @Content(schema = @Schema(implementation = OrderResponseDTO.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "401",  description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Permission denied"),
+            @ApiResponse(responseCode = "404", description = "Product not found")
+
+    })
     public ResponseEntity<OrderResponseDTO> createOrder(
             @Valid @RequestBody OrderRequestDTO request) {
 
@@ -66,6 +79,14 @@ public class OrderController {
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
     @Operation(summary = "Get Orders",
                description ="Fetch orders with filters like status,user, amount and quantity.Admin or Manager can view all orders, users can view their own orders only." )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Orders fetched successfully",
+                    content = @Content(schema = @Schema(implementation = OrderResponseDTO.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Permission denied"),
+            @ApiResponse(responseCode = "404", description = "Orders not found")
+    })
     public ResponseEntity<List<OrderResponseDTO>> getOrders(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String createdBy,
@@ -90,6 +111,17 @@ public class OrderController {
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
     @Operation(summary = "Cancel Order",
                description = "Cancel an order by ID,Users can cancel their own orders ,Admins can cancel any order on behalf of a user if needed")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Order cancelled successfully",
+                    content = @Content(schema = @Schema(implementation = OrderResponseDTO.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Permission denied"),
+            @ApiResponse(responseCode = "404", description = "Order not found")
+    })
     public ResponseEntity<OrderResponseDTO> cancelOrder(@PathVariable Long orderId) {
         log.warn("Cancelling order with id {}", orderId);
 
