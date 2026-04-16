@@ -150,12 +150,12 @@ PUT /api/orders/cancel/{orderId}
 ___________________________________________________________________________________________________________
 
 Database Tables
-users
-roles
-products
-orders
-order_items
-order_status
+tb_users
+tb_roles
+tb_products
+tb_orders
+tb_order_items
+tb_order_status
 ___________________________________________________________________________________________________________
 Security
 
