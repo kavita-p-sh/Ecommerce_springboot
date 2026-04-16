@@ -6,6 +6,10 @@ import com.ecommerce.api.dto.ProductUpdateDTO;
 import com.ecommerce.api.service.ProductService;
 import com.ecommerce.api.util.AppConstants;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
@@ -42,6 +46,15 @@ public class ProductController {
     @RolesAllowed(AppConstants.ROLE_ADMIN)
     @Operation(summary = "Create Product",
                 description = "Creates a new Product. Only admin can create products.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Product created successfully",
+                    content = @Content(schema = @Schema(implementation = ProductResponseDTO.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "401",  description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Permission denied"),
+            @ApiResponse(responseCode = "409", description = "Product already exists")
+    })
     public ResponseEntity<ProductResponseDTO> createProduct(
             @Valid @RequestBody ProductRequestDTO dto) {
 
@@ -61,6 +74,13 @@ public class ProductController {
     @RolesAllowed({AppConstants.ROLE_USER, AppConstants.ROLE_ADMIN, AppConstants.ROLE_MANAGER})
     @Operation(summary = "Get products",
                description = "Fetch all products and filter them by name,price and quantity.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Products fetched successfully",
+            content = @Content(schema = @Schema(implementation = ProductResponseDTO.class))
+            ),
+            @ApiResponse(responseCode = "401",  description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Permission denied"),
+            @ApiResponse(responseCode = "404", description = "Products not found")
+    })
     public ResponseEntity<List<ProductResponseDTO>> getProducts(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) BigDecimal price,
@@ -82,6 +102,14 @@ public class ProductController {
     @RolesAllowed(AppConstants.ROLE_ADMIN)
     @Operation(summary = "Update Product By ID",
                description ="Update product details using product ID.Only Admin can update products" )
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Product updated successfully",
+            content = @Content(schema = @Schema(implementation = ProductResponseDTO.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Permission denied"),
+            @ApiResponse(responseCode = "404", description = "Product not found")
+    })
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable Long id,
             @Valid @RequestBody ProductUpdateDTO dto) {
@@ -102,6 +130,12 @@ public class ProductController {
     @RolesAllowed(AppConstants.ROLE_ADMIN)
     @Operation(summary = "Delete product by ID",
                description = "Deletes a product by ID .Only admin can delete product")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Product deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Permission denied"),
+            @ApiResponse(responseCode = "404", description = "Product not found")
+    })
     public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
 
         log.info("Delete Product with id: {}", id);

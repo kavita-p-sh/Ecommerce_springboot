@@ -14,6 +14,7 @@ import com.ecommerce.api.repository.UserRepository;
 import com.ecommerce.api.service.LoggedInUserService;
 import com.ecommerce.api.service.UserService;
 import com.ecommerce.api.util.AppConstants;
+import com.ecommerce.api.util.CacheConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -47,7 +48,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "users", key = "'allUsers'")
+    @CacheEvict(cacheNames = CacheConstant.USERS, key = CacheConstant.ALL_USERS_KEY)
     public UserResponseDTO registerUser(RegisterRequestDTO dto) {
         log.info("Register request received for username: {}", dto.getUsername());
 
@@ -204,7 +205,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = "users", key = "'username_' + #username")
+    @Cacheable(cacheNames = "users", key = CacheConstant.USERNAME_USER_KEY)
     public UserResponseDTO getUserByUsername(String username) {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
@@ -221,7 +222,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = "users", key = "'email_' + #email")
+    @Cacheable(cacheNames = CacheConstant.USERS, key = CacheConstant.EMAIL_USER_KEY)
     public UserResponseDTO getUserByEmail(String email) {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
@@ -238,7 +239,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = "users", key = "'phone_' + #phoneNumber")
+    @Cacheable(cacheNames = "users", key = CacheConstant.PHONE_USER_KEY)
     public UserResponseDTO getUserByPhoneNumber(String phoneNumber) {
         UserEntity user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() ->
@@ -254,7 +255,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = "users", key = "'allUsers'")
+    @Cacheable(cacheNames = CacheConstant.USERS, key =CacheConstant.ALL_USERS_KEY)
     public List<UserResponseDTO> getAllUsers() {
         List<UserEntity> users = userRepository.findAll();
 
@@ -317,8 +318,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     @Caching(
-            put = {@CachePut(cacheNames = "users", key = "'username_' + #username")},
-            evict = {@CacheEvict(cacheNames = "users", key = "'allUsers'")}
+            put = {@CachePut(cacheNames = CacheConstant.USERS, key = CacheConstant.USERNAME_USER_KEY)},
+            evict = {@CacheEvict(cacheNames = CacheConstant.USERS, key =CacheConstant.ALL_USERS_KEY)}
     )
     public UserResponseDTO updateUserByUsername(String username, UpdateUserDTO dto) {
         UserEntity existingUser = userRepository.findByUsername(username)
@@ -332,8 +333,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     @Caching(
-            put = {@CachePut(cacheNames = "users", key = "'username_' + #result.username")},
-            evict = {@CacheEvict(cacheNames = "users", key = "'allUsers'")}
+            put = {@CachePut(cacheNames = CacheConstant.USERS, key = CacheConstant.RESULT_USER_KEY)},
+            evict = {@CacheEvict(cacheNames =CacheConstant.USERS, key = CacheConstant.ALL_USERS_KEY)}
     )
     public UserResponseDTO updateMyProfile(UpdateUserDTO dto) {
         String username = loggedInUserService.getUsername();
@@ -352,7 +353,7 @@ public class UserServiceImpl implements UserService {
      * @param username username
      */
     @Override
-    @CacheEvict(cacheNames = "users", allEntries = true)
+    @CacheEvict(cacheNames = CacheConstant.USERS, allEntries = true)
     public void deleteUserByUsername(String username) {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() ->

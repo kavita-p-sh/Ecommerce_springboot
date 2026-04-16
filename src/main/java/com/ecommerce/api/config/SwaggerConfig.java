@@ -1,9 +1,11 @@
 package com.ecommerce.api.config;
 
+import com.ecommerce.api.util.JwtConstant;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.hibernate.engine.jdbc.spi.JdbcWrapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,13 +32,13 @@ public class SwaggerConfig {
         return new OpenAPI()
 
         .components(new Components().
-            addSecuritySchemes("bearerAuth",
+            addSecuritySchemes(JwtConstant.BEARER_AUTH,
                     new SecurityScheme().
                             type(SecurityScheme.Type.HTTP).
-                            scheme("bearer").
-                            bearerFormat("JWT")))
+                            scheme(JwtConstant.SCHEME_BEARER).
+                            bearerFormat(JwtConstant.BEARER_FORMAT)))
 
-            .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+            .addSecurityItem(new SecurityRequirement().addList(JwtConstant.BEARER_AUTH));
 
     }
 

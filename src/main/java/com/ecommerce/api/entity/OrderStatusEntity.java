@@ -9,7 +9,7 @@ import java.util.List;
  * Entity for storing order status details (PLACED, DELIVERED, CANCELLED).
  */
 @Entity
-@Table(name = "order_status")
+@Table(name = "tb_order_status")
 @Data
 public class OrderStatusEntity  {
 

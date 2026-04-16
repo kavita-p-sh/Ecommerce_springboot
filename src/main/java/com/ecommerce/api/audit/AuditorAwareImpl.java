@@ -29,7 +29,7 @@ public class AuditorAwareImpl implements AuditorAware<String> {
                 return Optional.of(AppConstants.SYSTEM);
             }
 
-            if ("anonymousUser".equals(authentication.getName())) {
+            if (AppConstants.ANONYMOUS_USER.equals(authentication.getName())) {
                 return Optional.of(AppConstants.SYSTEM);
             }
 

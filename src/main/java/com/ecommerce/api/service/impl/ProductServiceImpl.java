@@ -10,6 +10,7 @@ import com.ecommerce.api.mapper.ProductMapper;
 import com.ecommerce.api.repository.ProductRepository;
 import com.ecommerce.api.service.ProductService;
 import com.ecommerce.api.util.AppConstants;
+import com.ecommerce.api.util.CacheConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -40,7 +41,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "products", allEntries = true)
+    @CacheEvict(value = CacheConstant.PRODUCTS, allEntries = true)
     public ProductResponseDTO addProduct(ProductRequestDTO requestDTO) {
 
         log.info("Adding Product:{} " , requestDTO.getName());
@@ -109,7 +110,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "products", key = "'allProducts'")
+    @Cacheable(value = CacheConstant.PRODUCTS, key = CacheConstant.ALL_PRODUCTS_KEY)
     public List<ProductResponseDTO> getAllProducts() {
 
         log.info("Fetching all products from database");
@@ -129,7 +130,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "products", allEntries = true)
+    @CacheEvict(value = CacheConstant.PRODUCTS, allEntries = true)
     public ProductResponseDTO updateProductById(Long id, ProductUpdateDTO dto) {
 
         log.info("Updating product with id: {}", id);
@@ -173,7 +174,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "products", allEntries = true)
+    @CacheEvict(value = CacheConstant.PRODUCTS, allEntries = true)
     public void deleteProductById(Long id) {
 
         log.info("Deleting product with id: {}", id);

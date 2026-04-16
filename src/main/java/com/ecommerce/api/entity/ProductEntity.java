@@ -10,7 +10,7 @@ import java.util.List;
  * Entity representing product details.
  */
 @Entity
-@Table(name = "products")
+@Table(name = "tb_products")
 @Data
 public class ProductEntity extends BaseEntity {
 

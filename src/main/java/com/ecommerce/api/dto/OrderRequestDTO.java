@@ -7,6 +7,6 @@ import java.util.List;
 @Data
 public class OrderRequestDTO {
 
-    @NotEmpty(message = "Order items cannot be empty")
+    @NotEmpty(message = "{order.items.required}")
     private List<OrderItemRequestDTO> items;
 }

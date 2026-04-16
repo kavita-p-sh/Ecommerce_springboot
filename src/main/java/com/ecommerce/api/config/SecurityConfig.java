@@ -1,6 +1,7 @@
 package com.ecommerce.api.config;
 
 import com.ecommerce.api.security.JwtAuthenticationFilter;
+import com.ecommerce.api.util.JwtConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,12 +64,7 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/auth/register",
-                                "/auth/login",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html").permitAll()
+                        .requestMatchers(JwtConstant.PERMIT_ALL_PATHS.toArray(new String[0])).permitAll()
                         .anyRequest().authenticated()
                 )
 
