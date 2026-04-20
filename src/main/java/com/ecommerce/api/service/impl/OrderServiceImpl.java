@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +38,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderStatusRepository orderStatusRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderMapper orderMapper;
-    private final OrderService self;
+//    private final OrderService self;
 
     /**
      * Creates a new order for the logged-in user.
@@ -191,10 +192,10 @@ public class OrderServiceImpl implements OrderService {
         String role = loggedInUserService.getRole();
 
         if (AppConstants.ROLE_ADMIN.equals(role) || AppConstants.ROLE_MANAGER.equals(role)) {
-            return self.getAllOrders();
+            return getAllOrders();
         }
 
-        return self.getOrdersByUser();
+        return getOrdersByUser();
     }
 
     /**
@@ -258,7 +259,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public List<OrderResponseDTO> getOrdersByUser() {
         String username = loggedInUserService.getCurrentUser().getUsername();
-        return self.getOrdersByUsername(username);
+        return getOrdersByUsername(username);
 
     }
     /**
@@ -269,7 +270,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = CacheConstant.ORDERS, key = CacheConstant.ORDERS_BY_USER_KEY)
+    @Cacheable(value = CacheConstant.ORDERS, key =" #username")
     public List<OrderResponseDTO> getOrdersByUsername(String username) {
         UserEntity user = getUser(username);
         return mapOrdersToDTO(orderRepository.findByUser(user));

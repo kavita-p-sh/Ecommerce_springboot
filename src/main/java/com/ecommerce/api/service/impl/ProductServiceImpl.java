@@ -29,7 +29,6 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
-    private final ProductService self;
 
     /**
      * Adds a new product to the system.
@@ -99,7 +98,7 @@ public class ProductServiceImpl implements ProductService {
                     .toList();
         }
 
-        return self.getAllProducts();
+        return getAllProducts();
     }
 
     /**

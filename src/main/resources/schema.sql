@@ -73,8 +73,6 @@ CREATE TABLE IF NOT EXISTS tb_orders (
           FOREIGN KEY (product_id) REFERENCES tb_products(product_id)
   );
 
-
-
 CREATE INDEX idx_tb_orders_user ON tb_orders(user_id);
 CREATE INDEX idx_tb_orders_status ON tb_orders(status_id);
 CREATE INDEX idx_tb_orders_created_by ON tb_orders(created_by);
