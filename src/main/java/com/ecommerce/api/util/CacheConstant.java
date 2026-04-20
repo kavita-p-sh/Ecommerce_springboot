@@ -27,6 +27,40 @@ public class CacheConstant {
 
 
 
+//for cache otp generate
+    public static final long OTP_TTL_MINUTES = 1;
+    public static final long OTP_ATTEMPT_TTL_MINUTES = 2;
+    public static final long IP_BLOCK_TTL_MINUTES = 5;
+
+    public static final int MAX_VERIFY_ATTEMPTS = 5;
+    public static final int MAX_OTP_REQUEST_PER_IP = 3;
+
+    public static final String OTP_PREFIX = "OTP:";
+    public static final String OTP_ATTEMPT_PREFIX = "OTP_ATTEMPT:";
+    public static final String IP_BLOCK_PREFIX = "IP_BLOCK:";
+    public static final String OTP_COUNT_PREFIX = "OTP_COUNT:";
+    public static final String BLOCKED_VALUE = "BLOCKED";
+
+
+
+    public static final String OTP_ALREADY_SENT =
+            "OTP already sent. Please use existing OTP or wait for expiry.";
+
+    public static final String OTP_EXPIRED = "OTP expired";
+
+    public static final String IP_BLOCKED = "Your IP is blocked";
+
+    public static final String TOO_MANY_REQUESTS =
+            "Too many OTP requests. IP blocked";
+
+    public static final String VERIFICATION_LIMIT_EXCEED= "Maximum OTP verification attempts exceeded";
+
+    public static final String OTP_VERIFIED = "OTP verified successfully";
+    public static final String INVALID_OTP = "Invalid OTP";
+
+
+
+
 }
 
 
