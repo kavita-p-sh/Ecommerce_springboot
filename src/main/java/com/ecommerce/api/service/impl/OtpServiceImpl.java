@@ -1,6 +1,6 @@
 package com.ecommerce.api.service.impl;
 
-import com.ecommerce.api.exception.OtpExpiredException;
+import com.ecommerce.api.exception.*;
 import com.ecommerce.api.service.OtpGenerator;
 import com.ecommerce.api.service.OtpService;
 import com.ecommerce.api.util.CacheConstant;
@@ -24,7 +24,6 @@ public class OtpServiceImpl implements OtpService {
     private final OtpGenerator otpGenerator;
 
     /**
-     *
      * @param uniqueKey unique identifier for OTP
      * @param ipAddress IP address of the user requesting OTP
      * @return generated OTP if successful, or a message if OTP already exists
@@ -38,23 +37,23 @@ public class OtpServiceImpl implements OtpService {
         log.info("Generating OTP for key: {} from IP: {}", uniqueKey, ipAddress);
         String otpKey = CacheConstant.OTP_PREFIX + uniqueKey;
 
-        Object existingOtp = redisTemplate.opsForValue().get(otpKey);
+        String otp = otpGenerator.generateOtp();
 
-        if (existingOtp != null) {
-            log.warn("OTP already exists for key: {}", uniqueKey);
-            return existingOtp.toString();
+        Boolean created = redisTemplate.opsForValue()
+                .setIfAbsent(otpKey, otp, CacheConstant.OTP_TTL_MINUTES, TimeUnit.MINUTES);
+
+        if (!Boolean.TRUE.equals(created)) {
+            Long remaining = redisTemplate.getExpire(otpKey, TimeUnit.SECONDS);
+            throw new OtpAlreadySentException(
+                    CacheConstant.OTP_ALREADY_SENT,
+                    remaining != null ? remaining : CacheConstant.DEFAULT_TTL
+            );
         }
 
-        String otp = otpGenerator.generateOtp();
-        redisTemplate.opsForValue().set(
-                otpKey,
-                otp,
-                CacheConstant.OTP_TTL_MINUTES,
-                TimeUnit.MINUTES
-        );
+        log.info("OTP stored in cache for key: {} with TTL: {} minutes",
+                uniqueKey, CacheConstant.OTP_TTL_MINUTES);
 
-        log.info("OTP stored in cache for key: {} with TTL: {} minutes", uniqueKey, CacheConstant.OTP_TTL_MINUTES);
-        return otp;
+        return CacheConstant.OTP_SENT;
     }
 
 
@@ -64,10 +63,14 @@ public class OtpServiceImpl implements OtpService {
      * @param enteredOtp  OTP entered by user
      * @param ipAddress client IP address
      * @return true if OTP is valid, false if not valid
-     * @throws RuntimeException if OTP expired or attempt limit exceeded
+     * @throws VerificationLimitExceededException if OTP expired or attempt limit exceeded
      */
     @Override
     public boolean verifyOtp(String uniqueKey, String enteredOtp, String ipAddress) {
+
+        checkIpBlocked(ipAddress);
+
+        checkIpVerifyLimit(ipAddress);
         log.info("Verifying OTP for key: {} from IP: {}", uniqueKey, ipAddress);
         String otpKey = CacheConstant.OTP_PREFIX + uniqueKey;
 
@@ -92,7 +95,7 @@ public class OtpServiceImpl implements OtpService {
             log.error("Verification limit exceeded for key: {}", uniqueKey);
 
             redisTemplate.delete(otpKey);
-            throw new RuntimeException(CacheConstant.VERIFICATION_LIMIT_EXCEED);
+            throw new VerificationLimitExceededException(CacheConstant.VERIFICATION_LIMIT_EXCEED);
         }
 
         if (cachedOtp.toString().equals(enteredOtp)) {
@@ -105,6 +108,31 @@ public class OtpServiceImpl implements OtpService {
 
         log.warn("Invalid OTP entered for key: {}", uniqueKey);
         return false;
+    }
+
+    private void checkIpVerifyLimit(String ip) {
+
+        String key = "VERIFY_COUNT:" + ip;
+
+        Long count = redisTemplate.opsForValue().increment(key);
+
+        if (count != null && count == 1) {
+            redisTemplate.expire(key, CacheConstant.OTP_ATTEMPT_TTL_MINUTES, TimeUnit.MINUTES);
+        }
+
+        log.info("Verify attempt count {} for IP: {}", count, ip);
+
+        if (count != null && count > CacheConstant.MAX_VERIFY_REQUEST_PER_IP) {
+            redisTemplate.opsForValue().set(
+                    CacheConstant.IP_BLOCK_PREFIX + ip,
+                    CacheConstant.BLOCKED_VALUE,
+                    CacheConstant.IP_BLOCK_TTL_MINUTES,
+                    TimeUnit.MINUTES
+            );
+
+            log.error("IP blocked due to too many verify attempts: {}", ip);
+            throw new TooManyRequestsException("Too many OTP verification attempts from this IP");
+        }
     }
 
     /**
@@ -141,7 +169,7 @@ public class OtpServiceImpl implements OtpService {
     /**
      * Checks whether the given IP address is blocked.
      * @param ip client IP address
-     * @throws RuntimeException if IP is blocked
+     * @throws IpBlockedException if IP is blocked
      */
 
     private void checkIpBlocked(String ip) {
@@ -151,14 +179,14 @@ public class OtpServiceImpl implements OtpService {
 
         if (blocked != null) {
             log.error("Blocked IP tried to request OTP: {}", ip);
-            throw new RuntimeException(CacheConstant.IP_BLOCKED);
+            throw new IpBlockedException(CacheConstant.IP_BLOCKED);
         }
     }
 
     /**
      * Tracks OTP request count per IP and applies rate limiting.
      * @param ip client IP address
-     * @throws RuntimeException if request limit exceeded
+     * @throws TooManyRequestsException if request limit exceeded
      */
     private void checkIpRequestLimit(String ip) {
         String key = CacheConstant.OTP_COUNT_PREFIX + ip;
@@ -179,7 +207,7 @@ public class OtpServiceImpl implements OtpService {
                     TimeUnit.MINUTES
             );
             log.error("IP blocked due to too many requests: {}", ip);
-            throw new RuntimeException(CacheConstant.TOO_MANY_REQUESTS);
+            throw new TooManyRequestsException(CacheConstant.TOO_MANY_REQUESTS);
         }
     }
 }

@@ -6,6 +6,8 @@ package com.ecommerce.api.util;
  */
 public class CacheConstant {
 
+
+
     private CacheConstant() {
     }
 
@@ -28,12 +30,14 @@ public class CacheConstant {
 
 
 //for cache otp generate
-    public static final long OTP_TTL_MINUTES = 1;
-    public static final long OTP_ATTEMPT_TTL_MINUTES = 2;
-    public static final long IP_BLOCK_TTL_MINUTES = 5;
-
+    public static final long OTP_TTL_MINUTES = 3;
+    public static final long OTP_ATTEMPT_TTL_MINUTES = 3;
     public static final int MAX_VERIFY_ATTEMPTS = 5;
-    public static final int MAX_OTP_REQUEST_PER_IP = 3;
+    public static final int MAX_OTP_REQUEST_PER_IP = 5;
+    public static final long OTP_REQUEST_TTL_MINUTES = 5;
+    public static final long IP_BLOCK_TTL_MINUTES = 5;
+    public static final long DEFAULT_TTL = 0L;
+
 
     public static final String OTP_PREFIX = "OTP:";
     public static final String OTP_ATTEMPT_PREFIX = "OTP_ATTEMPT:";
@@ -42,9 +46,13 @@ public class CacheConstant {
     public static final String BLOCKED_VALUE = "BLOCKED";
 
 
+    public static final int MAX_VERIFY_REQUEST_PER_IP = 10;
+
+    public static final String OTP_SENT="OTP sent successfully";
 
     public static final String OTP_ALREADY_SENT =
             "OTP already sent. Please use existing OTP or wait for expiry.";
+
 
     public static final String OTP_EXPIRED = "OTP expired";
 
