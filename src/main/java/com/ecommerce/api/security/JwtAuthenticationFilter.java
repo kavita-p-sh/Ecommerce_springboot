@@ -8,12 +8,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.engine.jdbc.spi.JdbcWrapper;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -34,9 +34,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
+    private static final AntPathMatcher MATCHER = new AntPathMatcher();
+
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return PUBLIC_PATHS.contains(request.getServletPath());
+        String path = request.getServletPath();
+
+        return JwtConstant.PERMIT_ALL_PATHS.stream()
+                .anyMatch(pattern -> MATCHER.match(pattern, path));
     }
 
     @Override

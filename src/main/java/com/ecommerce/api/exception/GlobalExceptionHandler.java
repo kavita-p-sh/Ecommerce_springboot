@@ -1,6 +1,7 @@
 package com.ecommerce.api.exception;
 
 import com.ecommerce.api.dto.ErrorResponseDTO;
+import com.ecommerce.api.dto.OtpResponseDTO;
 import com.ecommerce.api.util.AppConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -85,5 +86,52 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(response, status);
+    }
+
+    @ExceptionHandler(OtpAlreadySentException.class)
+    public ResponseEntity<OtpResponseDTO> handleOtpAlreadySent(OtpAlreadySentException ex) {
+
+        OtpResponseDTO response = new OtpResponseDTO();
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setMessage(ex.getMessage());
+        response.setRemainingSeconds(ex.getRemainingSeconds());
+
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
+    }
+
+    @ExceptionHandler(VerificationLimitExceededException.class)
+    public ResponseEntity<ErrorResponseDTO> handleVerificationLimitExceeded(
+            VerificationLimitExceededException ex,
+            HttpServletRequest request) {
+
+        return buildErrorResponse(
+                ex.getMessage(),
+                HttpStatus.TOO_MANY_REQUESTS,
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(IpBlockedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleIpBlocked(
+            IpBlockedException ex,
+            HttpServletRequest request) {
+
+        return buildErrorResponse(
+                ex.getMessage(),
+                HttpStatus.FORBIDDEN,
+                request.getRequestURI()
+        );
+    }
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTooManyRequests(
+            TooManyRequestsException ex,
+            HttpServletRequest request) {
+
+        return buildErrorResponse(
+                ex.getMessage(),
+                HttpStatus.TOO_MANY_REQUESTS,
+                request.getRequestURI()
+        );
     }
 }

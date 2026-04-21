@@ -14,6 +14,7 @@ public class JwtConstant {
     public static final List<String> PUBLIC_PATHS = List.of(
             "/auth/login",
             "/auth/register"
+
     );
 
     public static final String TOKEN_PREFIX = "Bearer";
@@ -28,6 +29,7 @@ public class JwtConstant {
     public static final List<String> PERMIT_ALL_PATHS = List.of(
             "/auth/login",
             "/auth/register",
+            "/api/otp/**",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html"
