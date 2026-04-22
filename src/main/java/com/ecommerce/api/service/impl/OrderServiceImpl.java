@@ -38,7 +38,6 @@ public class OrderServiceImpl implements OrderService {
     private final OrderStatusRepository orderStatusRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderMapper orderMapper;
-//    private final OrderService self;
 
     /**
      * Creates a new order for the logged-in user.

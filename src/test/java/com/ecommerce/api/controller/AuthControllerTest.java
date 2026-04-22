@@ -1,11 +1,12 @@
 package com.ecommerce.api.controller;
 
-import com.ecommerce.api.dto.LoginRequestDTO;
-import com.ecommerce.api.dto.RegisterRequestDTO;
-import com.ecommerce.api.dto.UserResponseDTO;
+import com.ecommerce.api.dto.*;
 import com.ecommerce.api.exception.BadRequestException;
 import com.ecommerce.api.service.AuthService;
+import com.ecommerce.api.service.OtpService;
 import com.ecommerce.api.util.AppConstants;
+import com.ecommerce.api.util.CacheConstant;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,6 +36,12 @@ class AuthControllerTest{
 
     @InjectMocks
     private AuthController authController;
+
+    @Mock
+    private OtpService otpService;
+
+    @Mock
+    private HttpServletRequest httpServletRequest;
 
     /**
      * Tests successful user registration.
@@ -138,6 +145,75 @@ class AuthControllerTest{
 
         assertEquals("Invalid username or password", exception.getMessage());
         verify(authService).login(request);
+    }
+
+    /**
+     * Test case: OTP should be generated successfully.
+     *
+     * Verifies:
+     * - Correct IP is extracted from request
+     * - Service method is called with correct parameters
+     * - Response status is  OK
+     * - Response body contains success message
+     */
+    @Test
+    void shouldGenerateOtpSuccessfully() {
+        OtpGenerateRequestDTO request = new OtpGenerateRequestDTO();
+        request.setKey("test135@gmail.com");
+
+        when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(otpService.generateOtp("test135@gmail.com", "127.0.0.1"))
+                .thenReturn("123456");
+
+        ResponseEntity<String> result = authController.generateOtp(request, httpServletRequest);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(CacheConstant.OTP_SENT, result.getBody());
+        verify(otpService).generateOtp("test135@gmail.com", "127.0.0.1");
+    }
+
+    /**
+     * Test case: OTP verification should succeed when OTP is valid.
+     *
+     * Verifies:
+     * - Correct IP is extracted
+     * - Service returns true for valid OTP
+     * - Response status is OK
+     * - Success message is returned
+     */
+
+    @Test
+    void verifyOtp_success() {
+        OtpVerifyRequestDTO request = new OtpVerifyRequestDTO();
+        request.setKey("test135@gmail.com");
+        request.setOtp("123456");
+
+        when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(otpService.verifyOtp("test135@gmail.com", "123456", "127.0.0.1"))
+                .thenReturn(true);
+
+        ResponseEntity<String> result = authController.verifyOtp(request, httpServletRequest);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(CacheConstant.OTP_VERIFIED, result.getBody());
+        verify(otpService).verifyOtp("test135@gmail.com", "123456", "127.0.0.1");
+    }
+
+    @Test
+    void verifyOtp_invalidOtp() {
+        OtpVerifyRequestDTO request = new OtpVerifyRequestDTO();
+        request.setKey("test135@gmail.com");
+        request.setOtp("999999");
+
+        when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(otpService.verifyOtp("test135@gmail.com", "999999", "127.0.0.1"))
+                .thenReturn(false);
+
+        ResponseEntity<String> result = authController.verifyOtp(request, httpServletRequest);
+
+        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+        assertEquals(CacheConstant.INVALID_OTP, result.getBody());
+        verify(otpService).verifyOtp("test135@gmail.com", "999999", "127.0.0.1");
     }
     /**
      * Test Logout

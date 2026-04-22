@@ -1,10 +1,10 @@
 package com.ecommerce.api.controller;
 
-import com.ecommerce.api.dto.LoginRequestDTO;
-import com.ecommerce.api.dto.RegisterRequestDTO;
-import com.ecommerce.api.dto.UserResponseDTO;
+import com.ecommerce.api.dto.*;
 import com.ecommerce.api.service.AuthService;
+import com.ecommerce.api.service.OtpService;
 import com.ecommerce.api.util.AppConstants;
+import com.ecommerce.api.util.CacheConstant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,8 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final OtpService otpService;
+
 
 
     /**
@@ -73,6 +76,64 @@ public class AuthController {
         log.info("Login successfully for username: {}", dto.getUsername());
 
         return ResponseEntity.ok(token);
+    }
+
+    /**
+     * Generates a new OTP for the given key if an active OTP does not already exist.
+     * Also checks IP-based request limit before generating the OTP.
+     */
+    @Operation(
+            summary = "Generate OTP",
+            description = "Generates a new OTP for the given key"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OTP generated successfully"),
+            @ApiResponse(responseCode = "400", description = "OTP already exists"),
+            @ApiResponse(responseCode = "429", description = "Too many OTP requests from this IP")
+    })
+    @PostMapping("/otp/generate")
+    public ResponseEntity<String> generateOtp(@Valid @RequestBody OtpGenerateRequestDTO requestDto,
+                                              HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        String key = requestDto.getKey();
+
+        log.info("OTP generation request received for key: {} from IP: {}", key, ip);
+
+        otpService.generateOtp(requestDto.getKey(), ip);
+
+        log.info("OTP generated successfully for key: {} from IP: {}", key, ip);
+
+        return ResponseEntity.ok(CacheConstant.OTP_SENT);
+    }
+
+    /**
+     * Verifies the entered OTP for the given key.
+     */
+    @Operation(
+            summary = "Verify OTP",
+            description = "Verifies the OTP entered by the user."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OTP verified successfully"),
+            @ApiResponse(responseCode = "400", description = "expired OTP")
+    })
+    @PostMapping("/otp/verify")
+    public ResponseEntity<String> verifyOtp(@Valid @RequestBody OtpVerifyRequestDTO requestDto,
+                                            HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        String key = requestDto.getKey();
+
+
+        log.info("OTP verification request received for key: {} from IP: {}", key, ip);
+
+        boolean result = otpService.verifyOtp(requestDto.getKey(), requestDto.getOtp(), ip);
+
+        if (result) {
+            log.info("OTP verified successfully for key: {} from IP: {}", key, ip);
+            return ResponseEntity.ok(CacheConstant.OTP_VERIFIED);
+        }
+        log.warn("Invalid OTP attempt for key: {} from IP: {}", key, ip);
+        return ResponseEntity.badRequest().body(CacheConstant.INVALID_OTP);
     }
 
     /**
