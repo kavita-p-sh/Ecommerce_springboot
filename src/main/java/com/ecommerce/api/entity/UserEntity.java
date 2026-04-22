@@ -4,8 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.List;
+import java.util.UUID;
+
 
 /**
  * Entity representing user table in database.
@@ -18,8 +22,10 @@ import java.util.List;
 public class UserEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "user_id", length = 36)
+    private UUID userId;
 
     @Column(unique = true , nullable = false)
     private String username;

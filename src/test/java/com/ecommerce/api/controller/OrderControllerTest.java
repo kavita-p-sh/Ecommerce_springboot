@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -140,7 +141,7 @@ public class OrderControllerTest {
      */
     @Test
     void cancelOrder_Success() {
-        Long orderId = 1L;
+        UUID orderId = UUID.randomUUID();
         OrderResponseDTO response = new OrderResponseDTO();
 
         when(orderService.cancelOrder(orderId)).thenReturn(response);
@@ -160,7 +161,7 @@ public class OrderControllerTest {
      */
     @Test
     void cancelOrder_OrderNotFound() {
-        Long orderId = 1L;
+        UUID orderId = UUID.randomUUID();
 
         when(orderService.cancelOrder(orderId))
                 .thenThrow(new ResourceNotFoundException("Order not found"));
@@ -179,7 +180,7 @@ public class OrderControllerTest {
      */
     @Test
     void cancelOrder_Failure() {
-        Long orderId = 1L;
+        UUID orderId = UUID.randomUUID();
 
         when(orderService.cancelOrder(orderId))
                 .thenThrow(new BadRequestException("Order cannot be cancelled"));

@@ -27,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -127,8 +128,10 @@ class OrderServiceImplTest {
         OrderStatusEntity placedStatus = new OrderStatusEntity();
         placedStatus.setStatusName(OrderStatus.PLACED.name());
 
+        UUID orderId = UUID.randomUUID();
+
         OrderEntity savedOrder = new OrderEntity();
-        savedOrder.setOrderId(10L);
+        savedOrder.setOrderId(orderId);
         savedOrder.setUser(user);
         savedOrder.setStatus(placedStatus);
         savedOrder.setTotalAmount(BigDecimal.valueOf(100000));
@@ -337,8 +340,10 @@ class OrderServiceImplTest {
         OrderStatusEntity cancelledStatus = new OrderStatusEntity();
         cancelledStatus.setStatusName(OrderStatus.CANCELLED.name());
 
+        UUID orderId = UUID.randomUUID();
+
         OrderEntity order = new OrderEntity();
-        order.setOrderId(1L);
+        order.setOrderId(orderId);
         order.setUser(user);
         order.setStatus(placedStatus);
 
@@ -351,14 +356,15 @@ class OrderServiceImplTest {
 
         when(loggedInUserServiceImpl.getCurrentUser()).thenReturn(currentUser);
         when(loggedInUserServiceImpl.isAdmin()).thenReturn(false);
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(orderStatusRepository.findByStatusName(OrderStatus.CANCELLED.name()))
                 .thenReturn(Optional.of(cancelledStatus));
         when(orderItemRepository.findByOrder(order)).thenReturn(List.of(item));
         when(orderRepository.save(order)).thenReturn(order);
         when(orderMapper.toDTO(order, List.of(item))).thenReturn(responseDTO);
 
-        OrderResponseDTO result = orderService.cancelOrder(1L);
+
+        OrderResponseDTO result = orderService.cancelOrder(orderId);
 
         assertNotNull(result);
         assertEquals(responseDTO, result);
@@ -379,11 +385,13 @@ class OrderServiceImplTest {
 
         when(loggedInUserServiceImpl.getCurrentUser()).thenReturn(currentUser);
         when(loggedInUserServiceImpl.isAdmin()).thenReturn(false);
-        when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+        UUID orderId = UUID.randomUUID();
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> orderService.cancelOrder(1L)
+                () -> orderService.cancelOrder(orderId)
         );
 
         assertEquals(AppConstants.ORDER_NOT_FOUND, exception.getMessage());

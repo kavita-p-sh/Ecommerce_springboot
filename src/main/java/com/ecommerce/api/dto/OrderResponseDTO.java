@@ -6,11 +6,12 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 public class OrderResponseDTO implements Serializable {
 
-    private Long orderId;
+    private UUID orderId;
     private BigDecimal totalAmount;
     private Integer totalQuantity;
     private String status;

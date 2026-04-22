@@ -133,14 +133,14 @@ public class OrderServiceImpl implements OrderService {
                 })
                 .toList();
     }
-    private Map<Long, List<OrderItemEntity>> getOrderItemsMap(List<OrderEntity> orders) {
+    private Map<UUID, List<OrderItemEntity>> getOrderItemsMap(List<OrderEntity> orders) {
         List<OrderItemEntity> orderItems = orderItemRepository.findByOrderIn(orders);
 
         return orderItems.stream()
                 .collect(Collectors.groupingBy(item -> item.getOrder().getOrderId()));
     }
     private List<OrderResponseDTO> mapOrdersToDTO(List<OrderEntity> orders) {
-        Map<Long, List<OrderItemEntity>> orderItemsMap = getOrderItemsMap(orders);
+        Map<UUID, List<OrderItemEntity>> orderItemsMap = getOrderItemsMap(orders);
 
         return orders.stream()
                 .map(order -> orderMapper.toDTO(
@@ -287,7 +287,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     @CacheEvict(value = {CacheConstant.ORDERS, CacheConstant.ORDERS_BY_USER}, allEntries = true)
-    public OrderResponseDTO cancelOrder(Long orderId) {
+    public OrderResponseDTO cancelOrder(UUID orderId) {
         String username = loggedInUserService.getCurrentUser().getUsername();
         boolean isAdmin = loggedInUserService.isAdmin();
 
