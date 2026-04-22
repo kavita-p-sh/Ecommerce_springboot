@@ -6,6 +6,7 @@ import com.ecommerce.api.dto.OrderResponseDTO;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Service interface for managing order operations.
@@ -68,5 +69,5 @@ public interface OrderService {
      * @param orderId order id
      * @return cancelled order details
      */
-    OrderResponseDTO cancelOrder(Long orderId);
+    OrderResponseDTO cancelOrder(UUID orderId);
 }

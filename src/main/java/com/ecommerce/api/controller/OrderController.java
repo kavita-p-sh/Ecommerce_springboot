@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * handles order related APIs
@@ -122,7 +123,7 @@ public class OrderController {
             @ApiResponse(responseCode = "403", description = "Permission denied"),
             @ApiResponse(responseCode = "404", description = "Order not found")
     })
-    public ResponseEntity<OrderResponseDTO> cancelOrder(@PathVariable Long orderId) {
+    public ResponseEntity<OrderResponseDTO> cancelOrder(@PathVariable UUID orderId) {
         log.warn("Cancelling order with id {}", orderId);
 
         OrderResponseDTO response=orderService.cancelOrder(orderId);

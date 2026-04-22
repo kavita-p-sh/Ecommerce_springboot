@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS tb_roles (
 );
 
 CREATE TABLE IF NOT EXISTS tb_users (
-    user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id CHAR(36) PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
@@ -40,8 +40,8 @@ CREATE TABLE IF NOT EXISTS tb_order_status (
 );
 
 CREATE TABLE IF NOT EXISTS tb_orders (
-    order_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
+    order_id CHAR(36) PRIMARY KEY,
+    user_id CHAR(36) NOT NULL,
     status_id BIGINT NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
     total_quantity INT NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS tb_orders (
         );
   CREATE TABLE IF NOT EXISTS tb_order_items (
        order_item_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-       order_id BIGINT NOT NULL,
+       order_id CHAR(36) NOT NULL ,
        product_id BIGINT NOT NULL,
        quantity INT NOT NULL,
 
