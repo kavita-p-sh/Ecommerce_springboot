@@ -17,5 +17,7 @@ public class RegexConstant {
 
     public static final String PRODUCT_NAME = "^(?=.*[A-Za-z0-9])[A-Za-z0-9 ._-]{2,100}$";
 
+    public static final String OTP_KEY = "^(\\S+@\\S+\\.\\S+|\\+?\\d{7,15})$";
 
+    public static final String OTP = "^\\d{6}$";
 }

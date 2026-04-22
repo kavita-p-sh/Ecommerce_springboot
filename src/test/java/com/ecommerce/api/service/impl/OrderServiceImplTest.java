@@ -141,6 +141,7 @@ class OrderServiceImplTest {
 
         OrderResponseDTO responseDTO = new OrderResponseDTO();
 
+
         when(loggedInUserServiceImpl.getCurrentUser()).thenReturn(currentUser);
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
@@ -215,19 +216,20 @@ class OrderServiceImplTest {
      */
     @Test
     void returnsAllOrders_admin() {
+        OrderEntity order = new OrderEntity();
         OrderResponseDTO responseDTO = new OrderResponseDTO();
 
-        when(loggedInUserServiceImpl.getUsername()).thenReturn("admin");
         when(loggedInUserServiceImpl.getRole()).thenReturn(AppConstants.ROLE_ADMIN);
+        when(orderRepository.findAll()).thenReturn(List.of(order));
+        when(orderItemRepository.findByOrderIn(anyList())).thenReturn(List.of());
+        when(orderMapper.toDTO(order, List.of())).thenReturn(responseDTO);
 
-        when(self.getAllOrders()).thenReturn(List.of(responseDTO));
-        List<OrderResponseDTO> result =
-                orderService.getOrders(null, null, null, null, null);
+        List<OrderResponseDTO> result = orderService.getOrders(null, null, null, null, null);
 
         assertEquals(1, result.size());
         assertEquals(responseDTO, result.get(0));
 
-        verify(self).getAllOrders();
+        verify(orderRepository).findAll();
     }
 
     /**
@@ -236,19 +238,31 @@ class OrderServiceImplTest {
      */
     @Test
     void getOrders_normalUser() {
+        String username = "ramPatel";
+
+        LoggedInUserDTO currentUser = new LoggedInUserDTO(username, AppConstants.ROLE_USER);
+
+        UserEntity user = new UserEntity();
+        user.setUsername(username);
+
+        OrderEntity order = new OrderEntity();
+        order.setUser(user);
+
         OrderResponseDTO responseDTO = new OrderResponseDTO();
 
-        when(loggedInUserServiceImpl.getUsername()).thenReturn("ramPatel");
         when(loggedInUserServiceImpl.getRole()).thenReturn(AppConstants.ROLE_USER);
+        when(loggedInUserServiceImpl.getCurrentUser()).thenReturn(currentUser);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(orderRepository.findByUser(user)).thenReturn(List.of(order));
+        when(orderItemRepository.findByOrderIn(anyList())).thenReturn(List.of());
+        when(orderMapper.toDTO(order, List.of())).thenReturn(responseDTO);
 
-        when(self.getOrdersByUser()).thenReturn(List.of(responseDTO));
-        List<OrderResponseDTO> result =
-                orderService.getOrders(null, null, null, null, null);
+        List<OrderResponseDTO> result = orderService.getOrders(null, null, null, null, null);
 
         assertEquals(1, result.size());
         assertEquals(responseDTO, result.get(0));
 
-        verify(self).getOrdersByUser();
+        verify(orderRepository).findByUser(user);
     }
 
     /**
@@ -278,16 +292,27 @@ class OrderServiceImplTest {
         String username = "ramPatel";
         LoggedInUserDTO currentUser = new LoggedInUserDTO(username, AppConstants.ROLE_USER);
 
+        UserEntity user = new UserEntity();
+        user.setUsername(username);
+
+        OrderEntity order = new OrderEntity();
+        order.setUser(user);
+
         OrderResponseDTO responseDTO = new OrderResponseDTO();
 
         when(loggedInUserServiceImpl.getCurrentUser()).thenReturn(currentUser);
-        when(self.getOrdersByUsername(username)).thenReturn(List.of(responseDTO));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(orderRepository.findByUser(user)).thenReturn(List.of(order));
+        when(orderItemRepository.findByOrderIn(anyList())).thenReturn(List.of());
+        when(orderMapper.toDTO(order, List.of())).thenReturn(responseDTO);
+
         List<OrderResponseDTO> result = orderService.getOrdersByUser();
 
         assertEquals(1, result.size());
         assertEquals(responseDTO, result.get(0));
 
-        verify(self).getOrdersByUsername(username);
+        verify(userRepository).findByUsername(username);
+        verify(orderRepository).findByUser(user);
     }
     /**
      * Tests successful order cancellation.

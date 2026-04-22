@@ -17,7 +17,7 @@ public class JwtConstant {
 
     );
 
-    public static final String TOKEN_PREFIX = "Bearer";
+    public static final String TOKEN_PREFIX = "Bearer ";
     public static final String HEADER = "Authorization";
     public static final String BEARER_AUTH = "bearerAuth";
     public static final String SCHEME_BEARER = "bearer";
@@ -29,7 +29,7 @@ public class JwtConstant {
     public static final List<String> PERMIT_ALL_PATHS = List.of(
             "/auth/login",
             "/auth/register",
-            "/api/otp/**",
+            "/auth/otp/**",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html"
